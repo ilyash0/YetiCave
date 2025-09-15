@@ -3,6 +3,13 @@ require_once("helpers.php");
 require_once("functions.php");
 require_once("data.php");
 
+
+/** @var array $categories */
+/** @var array $products */
+/** @var string $user_name */
+/** @var int $is_auth */
+
+
 $page_content = include_template("main.php", ["categories" => $categories, 'products' => $products]);
 
 $layout_content = include_template("layout.php",

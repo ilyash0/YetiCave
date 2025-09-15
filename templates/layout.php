@@ -1,3 +1,12 @@
+<?php
+/** @var array $categories */
+/** @var string $title */
+/** @var string $content */
+/** @var string $user_name */
+/** @var int $is_auth */
+/** @var callable $format_price */
+?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
