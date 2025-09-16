@@ -10,10 +10,6 @@ require_once("data.php");
 /** @var int $is_auth */
 
 
-sanitize_recursive($categories);
-sanitize_recursive($products);
-sanitize_recursive($user_name);
-
 $page_content = include_template("main.php", ["categories" => $categories, 'products' => $products]);
 
 $layout_content = include_template("layout.php",

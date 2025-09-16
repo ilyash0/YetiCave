@@ -11,7 +11,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title><?= $title; ?></title>
+    <title><?= $title ?></title>
     <link href="../css/normalize.min.css" rel="stylesheet">
     <link href="../css/style.css" rel="stylesheet">
 </head>
@@ -34,7 +34,7 @@
 
                 <?php if ($is_auth === 1): ?>
                     <div class="user-menu__logged">
-                        <p><?= $user_name ?></p>
+                        <p><?= htmlspecialchars($user_name) ?></p>
                         <a href="pages/my-bets.html" class="user-menu__bets">Мои ставки</a>
                         <a href="#" class="user-menu_logout">Выход</a>
                     </div>
@@ -62,7 +62,7 @@
 
             <?php foreach ($categories as $category): ?>
                 <li class="nav__item">
-                    <a href="pages/all-lots.html"><?= $category ?></a>
+                    <a href="pages/all-lots.html"><?= htmlspecialchars($category) ?></a>
                 </li>
             <?php endforeach; ?>
 
