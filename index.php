@@ -15,7 +15,7 @@ $page_content = include_template("main.php", ["categories" => $categories, 'prod
 $layout_content = include_template("layout.php",
     [
         "content" => $page_content,
-        "title" => "Заголовок",
+        "title" => "YetiCave",
         "categories" => $categories,
         "user_name" => $user_name,
         "is_auth" => $is_auth
