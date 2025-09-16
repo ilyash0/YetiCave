@@ -1,9 +1,8 @@
 <?php
 $is_auth = rand(0, 1);
 
-$user_name = "Илья";
+$user_name = "<script>alert('XSS!')</script>";
 
-global $categories;
 $categories = ["Доски и лыжи", "Крепления", "Ботинки", "Одежда", "Инструменты", "Разное"];
 
 $products = [
