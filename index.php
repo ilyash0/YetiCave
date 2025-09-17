@@ -9,6 +9,7 @@ require_once("data.php");
 /** @var string $user_name */
 /** @var int $is_auth */
 
+date_default_timezone_set("Asia/Yekaterinburg");
 
 $page_content = include_template("main.php", ["categories" => $categories, 'products' => $products]);
 

@@ -24,22 +24,46 @@
     </div>
     <ul class="lots__list">
 
-        <?php foreach ($products as $product): ?>
+        <?php foreach ($products as $product):
+            $dt = get_dt_range($product['expiration_date']);
+
+            $hours = $dt[0];
+            $minutes = $dt[1];
+
+            if ($hours < 1) {
+                continue;
+            }
+
+            $imageSrc = htmlspecialchars($product['image']);
+            $nameSafe = htmlspecialchars($product['name']);
+            $categorySafe = htmlspecialchars($product['category']);
+            $priceSafe = htmlspecialchars(format_price($product['price']));
+
+            $timerText =
+                str_pad($hours, 2, "0", STR_PAD_LEFT)
+                . ":" .
+                str_pad($minutes, 2, "0", STR_PAD_LEFT);
+            $timerClass = $hours < 2 ? 'lot__timer timer timer--finishing' : 'lot__timer timer';
+            ?>
             <li class="lots__item lot">
                 <div class="lot__image">
-                    <img src="<?= $product["image"] ?>" width="350" height="260" alt="">
+                    <img src="<?= $imageSrc ?>" width="350" height="260" alt="">
                 </div>
                 <div class="lot__info">
-                    <span class="lot__category"><?= htmlspecialchars($product["category"]) ?></span>
-                    <h3 class="lot__title"><a class="text-link" href="pages/lot.html"><?= htmlspecialchars($product["name"]) ?></a></h3>
+                    <span class="lot__category"><?= $categorySafe ?></span>
+                    <h3 class="lot__title">
+                        <a class="text-link" href="pages/lot.html"><?= $nameSafe ?></a>
+                    </h3>
                     <div class="lot__state">
                         <div class="lot__rate">
                             <span class="lot__amount">Стартовая цена</span>
-                            <span class="lot__cost"><?= htmlspecialchars(format_price($product["price"])) ?></span>
+                            <span class="lot__cost"><?= $priceSafe ?></span>
                         </div>
-                        <div class="lot__timer timer">
-                            12:23
+
+                        <div class="<?= $timerClass ?>">
+                            <?= $timerText ?>
                         </div>
+
                     </div>
                 </div>
             </li>
