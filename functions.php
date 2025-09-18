@@ -1,4 +1,9 @@
 <?php
+date_default_timezone_set("Asia/Yekaterinburg");
+const HOURS_IN_DAY = 24;
+const MINUTES_IN_HOUR = 60;
+const SECONDS_IN_HOUR = 3600;
+
 
 /**
  * @param int $amount
@@ -13,7 +18,7 @@ function format_price(int $amount): string
 
 /**
  * @param string $date_str
- * @return array массив с двумя строками 'HH' и 'MM'
+ * @return array массив [часы, минуты] в числовом формате
  */
 function get_dt_range(string $date_str): array
 {
@@ -24,14 +29,14 @@ function get_dt_range(string $date_str): array
     }
 
     $now = time();
-    $target_date = $day_start + 24 * 3600;
+    $target_date = $day_start + HOURS_IN_DAY * SECONDS_IN_HOUR;
     $difference = $target_date - $now;
 
     if ($difference <= 0) {
         return [0, 0];
     }
 
-    $hours = floor($difference / 3600);
-    $minutes = floor(($difference % 3600) / 60);
+    $hours = floor($difference / SECONDS_IN_HOUR);
+    $minutes = floor(($difference % SECONDS_IN_HOUR) / MINUTES_IN_HOUR);
     return [$hours, $minutes];
 }
