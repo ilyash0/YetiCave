@@ -8,8 +8,6 @@ require_once("init.php");
 /** @var string $user_name */
 /** @var int $is_auth */
 
-date_default_timezone_set("Asia/Yekaterinburg");
-
 $categories = get_categories_array($connect);
 $lots = get_lots($connect);
 
