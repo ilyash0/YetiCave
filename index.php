@@ -1,17 +1,19 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
-require_once("data.php");
+require_once("init.php");
 
 
-/** @var array $categories */
-/** @var array $products */
+/** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
 
 date_default_timezone_set("Asia/Yekaterinburg");
 
-$page_content = include_template("main.php", ["categories" => $categories, 'products' => $products]);
+$categories = get_categories_array($connect);
+$lots = get_lots($connect);
+
+$page_content = include_template("main.php", ["categories" => $categories, 'lots' => $lots]);
 
 $layout_content = include_template("layout.php",
     [

@@ -1,4 +1,5 @@
 <?php
+/** @var false|mysqli $connect */
 date_default_timezone_set("Asia/Yekaterinburg");
 const HOURS_IN_DAY = 24;
 const MINUTES_IN_HOUR = 60;
@@ -39,4 +40,51 @@ function get_dt_range(string $date_str): array
     $hours = floor($difference / SECONDS_IN_HOUR);
     $minutes = floor(($difference % SECONDS_IN_HOUR) / MINUTES_IN_HOUR);
     return [$hours, $minutes];
+}
+
+/**
+ * @param mysqli $connect
+ * @return array Массив ассоциативных массивов с данными категорий. Каждый элемент содержит:
+ * * name (string) - читаемое название
+ * * symbolic_code (string) - символьный код для URL
+ */
+function get_categories_array(mysqli $connect): array
+{
+    $sql = "SELECT name, symbolic_code FROM categories";
+    $result = mysqli_query($connect, $sql);
+
+    $categories = [];
+    if ($result) {
+        $categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    }
+
+    return $categories;
+}
+
+/**
+ * @param mysqli $connect
+ * @return array Массив ассоциативных массивов с данными лотов. Каждый элемент содержит:
+ * * title (string) - название лота
+ * * initial_price (int) - начальная цена
+ * * image_url (string) - путь к изображению
+ * * category_name (string) - название категории (из таблицы categories)
+ * * date_end (string) - дата окончания торгов в формате YYYY-MM-DD
+ */
+function get_lots(mysqli $connect): array
+{
+    $sql = "SELECT l.title, l.initial_price, l.image_url, 
+                   c.name AS category_name, l.date_end
+            FROM lots l
+            JOIN categories c ON l.category_id = c.id
+            WHERE l.date_end >= CURDATE()
+            ORDER BY l.created_at DESC";
+
+    $result = mysqli_query($connect, $sql);
+
+    $lots = [];
+    if ($result) {
+        $lots = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    }
+
+    return $lots;
 }

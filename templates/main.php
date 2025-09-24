@@ -1,7 +1,6 @@
 <?php
 /** @var array $categories */
-/** @var array $products */
-/** @var callable $format_price */
+/** @var array $lots */
 ?>
 
 <section class="promo">
@@ -11,8 +10,8 @@
     <ul class="promo__list">
 
         <?php foreach ($categories as $category): ?>
-            <li class="promo__item promo__item--boards">
-                <a class="promo__link" href="pages/all-lots.html"><?= htmlspecialchars($category) ?></a>
+            <li class="promo__item promo__item--<?= htmlspecialchars($category['symbolic_code']) ?>">
+                <a class="promo__link" href="pages/all-lots.html"><?= htmlspecialchars($category['name']) ?></a>
             </li>
         <?php endforeach; ?>
 
@@ -24,44 +23,40 @@
     </div>
     <ul class="lots__list">
 
-        <?php foreach ($products as $product):
-            $dt = get_dt_range($product['expiration_date']);
+        <?php foreach ($lots as $lot):
+            $dt = get_dt_range($lot['date_end']);
 
             $hours = $dt[0];
             $minutes = $dt[1];
 
-            if ($hours < 1) {
-                continue;
-            }
+            $image_url = htmlspecialchars($lot['image_url']);
+            $title_safe = htmlspecialchars($lot['title']);
+            $category_safe = htmlspecialchars($lot['category_name']);
+            $price_safe = htmlspecialchars(format_price($lot['initial_price']));
 
-            $imageSrc = htmlspecialchars($product['image']);
-            $nameSafe = htmlspecialchars($product['name']);
-            $categorySafe = htmlspecialchars($product['category']);
-            $priceSafe = htmlspecialchars(format_price($product['price']));
-
-            $timerText =
+            $timer_text =
                 str_pad($hours, 2, "0", STR_PAD_LEFT)
                 . ":" .
                 str_pad($minutes, 2, "0", STR_PAD_LEFT);
-            $timerClass = $hours < 2 ? 'lot__timer timer timer--finishing' : 'lot__timer timer';
+            $timer_class = $hours < 2 ? 'lot__timer timer timer--finishing' : 'lot__timer timer';
             ?>
             <li class="lots__item lot">
                 <div class="lot__image">
-                    <img src="<?= $imageSrc ?>" width="350" height="260" alt="">
+                    <img src="<?= $image_url ?>" width="350" height="260" alt="">
                 </div>
                 <div class="lot__info">
-                    <span class="lot__category"><?= $categorySafe ?></span>
+                    <span class="lot__category"><?= $category_safe ?></span>
                     <h3 class="lot__title">
-                        <a class="text-link" href="pages/lot.html"><?= $nameSafe ?></a>
+                        <a class="text-link" href="pages/lot.html"><?= $title_safe ?></a>
                     </h3>
                     <div class="lot__state">
                         <div class="lot__rate">
                             <span class="lot__amount">Стартовая цена</span>
-                            <span class="lot__cost"><?= $priceSafe ?></span>
+                            <span class="lot__cost"><?= $price_safe ?></span>
                         </div>
 
-                        <div class="<?= $timerClass ?>">
-                            <?= $timerText ?>
+                        <div class="<?= $timer_class ?>">
+                            <?= $timer_text ?>
                         </div>
 
                     </div>
