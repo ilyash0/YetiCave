@@ -94,7 +94,7 @@ function get_lots(mysqli $connect): array
  * @param int $id ID лота
  * @return array|null Ассоциативный массив с данными лота или null, если не найдено
  */
-function get_lot_by_id(mysqli $connect, int $id): ?array
+function get_lot_or_null_by_id(mysqli $connect, ?int $id): ?array
 {
     $sql = "
         SELECT  l.title, l.initial_price, l.image_url, 
