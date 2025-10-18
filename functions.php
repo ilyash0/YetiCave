@@ -45,12 +45,13 @@ function get_dt_range(string $date_str): array
 /**
  * @param mysqli $connect
  * @return array Массив ассоциативных массивов с данными категорий. Каждый элемент содержит:
+ * * id (int) - интенсификатор категории
  * * name (string) - читаемое название
  * * symbolic_code (string) - символьный код для URL
  */
 function get_categories_array(mysqli $connect): array
 {
-    $sql = "SELECT name, symbolic_code FROM categories";
+    $sql = "SELECT id, name, symbolic_code FROM categories";
     $result = mysqli_query($connect, $sql);
 
     $categories = [];
@@ -111,3 +112,47 @@ function get_lot_or_null_by_id(mysqli $connect, ?int $id): ?array
     return mysqli_fetch_assoc($result) ?: null;
 }
 
+function is_filled(string $text): bool
+{
+    return !empty($text);
+}
+
+function is_valid_length(string $text, int $min, int $max): bool
+{
+    $len = strlen($text);
+    return $len >= $min and $len <= $max;
+}
+
+function is_valid_price(string $value): bool
+{
+    return is_numeric($value) && $value > 0;
+}
+
+function is_valid_date(string $date) : bool {
+    $format_to_check = 'Y-m-d';
+    $dateTimeObj = date_create_from_format($format_to_check, $date);
+
+    if ($dateTimeObj === false) {
+        return false;
+    }
+
+    $now = new DateTime();
+    $today_start = new DateTime($now->format($format_to_check));
+
+    return $dateTimeObj >= $today_start;
+}
+
+function is_image($file): bool
+{
+    if (!is_array($file) || !isset($file['tmp_name']) || empty($file['tmp_name']))
+    {
+        return false;
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $file_name = $file['tmp_name'];
+    $file_type = finfo_file($finfo, $file_name);
+    finfo_close($finfo);
+
+    return $file_type == 'image/jpeg' or $file_type == 'image/png' or $file_type == 'image/webp';
+}
