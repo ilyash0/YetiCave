@@ -36,7 +36,7 @@
                     <div class="user-menu__logged">
                         <p><?= htmlspecialchars($user_name) ?></p>
                         <a href="pages/my-bets.html" class="user-menu__bets">Мои ставки</a>
-                        <a href="#" class="user-menu_logout">Выход</a>
+                        <a href="/logout.php" class="user-menu_logout">Выход</a>
                     </div>
                 <?php else: ?>
                     <ul class="user-menu__list">
@@ -44,7 +44,7 @@
                             <a href="/sign-up.php">Регистрация</a>
                         </li>
                         <li class="user-menu__item">
-                            <a href="#">Вход</a>
+                            <a href="/login.php">Вход</a>
                         </li>
                     </ul>
                 <?php endif; ?>
