@@ -14,9 +14,9 @@ $categories = get_categories_array($connect);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $new_lot = [
-        'lot-name' => $_POST['lot-name'],
+        'lot-name' => trim($_POST['lot-name']),
         'category' => $_POST['category'] ?? null,
-        'message' => $_POST['message'],
+        'message' => trim($_POST['message']),
         'lot-rate' => $_POST['lot-rate'],
         'lot-step' => $_POST['lot-step'],
         'lot-img' => $_FILES['lot-img'],
