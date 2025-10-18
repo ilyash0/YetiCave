@@ -14,15 +14,15 @@ $categories = get_categories_array($connect);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $new_user = [
-        'email' => $_POST['email'],
+        'email' => trim($_POST['email']),
         'password' => $_POST['password'],
-        'name' => $_POST['name'],
-        'message' => $_POST['message']
+        'name' => trim($_POST['name']),
+        'message' => trim($_POST['message'])
     ];
 
     $rules = [
-        'email' => is_valid_length($new_user['email'], 1, 255),
-        'password' => is_valid_length($new_user['password'], 1, 255),
+        'email' => is_valid_length($new_user['email'], 1, 255) and filter_var($_POST['email'], FILTER_VALIDATE_EMAIL),
+        'password' => is_valid_length($new_user['password'], 8, 255),
         'name' => is_valid_length($new_user['name'], 1, 150),
         'message' => is_valid_length($new_user['message'], 1, 255)
     ];
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result = mysqli_stmt_execute($stmt);
 
         if ($result) {
-            header("Location: /");
+            header("Location: /login.php");
             exit();
         } else {
             http_response_code(500);

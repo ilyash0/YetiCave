@@ -25,7 +25,7 @@
             <label for="password">Пароль <sup>*</sup></label>
             <input id="password" type="password" name="password" placeholder="Введите пароль"
                    value="<?= htmlspecialchars($_POST['password'] ?? "") ?>" >
-            <span class="form__error">Введите пароль</span>
+            <span class="form__error">Введите пароль. Не менее 8 символов</span>
         </div>
         <div class="form__item <?= in_array("name", $errors) ? 'form__item--invalid' : '' ?>">
             <label for="name">Имя <sup>*</sup></label>
