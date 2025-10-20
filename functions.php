@@ -128,18 +128,22 @@ function is_valid_price(string $value): bool
     return is_numeric($value) && $value > 0;
 }
 
-function is_valid_date(string $date) : bool {
-    $format_to_check = 'Y-m-d';
-    $dateTimeObj = date_create_from_format($format_to_check, $date);
+function is_valid_date(string $date): bool
+{
+    $format = 'Y-m-d';
+    $dateTimeObj = date_create_from_format($format, $date);
 
-    if ($dateTimeObj === false) {
+    if (!$dateTimeObj || $dateTimeObj->format($format) !== $date) {
         return false;
     }
 
-    $now = new DateTime();
-    $today_start = new DateTime($now->format($format_to_check));
+    $date_obj = clone $dateTimeObj;
+    $date_obj->setTime(0, 0);
 
-    return $dateTimeObj >= $today_start;
+    $today = new DateTime();
+    $today->setTime(0, 0);
+
+    return $date_obj > $today;
 }
 
 function is_image($file): bool
@@ -155,4 +159,59 @@ function is_image($file): bool
     finfo_close($finfo);
 
     return $file_type == 'image/jpeg' or $file_type == 'image/png' or $file_type == 'image/webp';
+}
+
+/**
+ * Создаёт новый лот: сохраняет изображение и записывает данные в БД.
+ *
+ * @param mysqli $connect Подключение к БД
+ * @param array $lot_data Данные лота: title, description, initial_price, bid_step, date_end, author_id, category_id, lot-img
+ * @param string $upload_dir Каталог для загрузки изображений (например, 'uploads/')
+ * @return int|null ID созданного лота или null в случае ошибки
+ */
+function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uploads/'): ?int
+{
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
+
+    $file_extension = pathinfo($lot_data['uploaded_file']['name'], PATHINFO_EXTENSION);
+    $filename = uniqid('lot_', true) . '.' . strtolower($file_extension);
+    $filepath = $upload_dir . $filename;
+
+    if (!move_uploaded_file($lot_data['uploaded_file']['tmp_name'], $filepath)) {
+        return null;
+    }
+
+    $sql = "INSERT INTO lots (
+                title, 
+                description, 
+                image_url, 
+                initial_price, 
+                bid_step, 
+                date_end, 
+                author_id, 
+                category_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [
+        $lot_data['title'],
+        $lot_data['description'],
+        $filepath,
+        $lot_data['initial_price'],
+        $lot_data['bid_step'],
+        $lot_data['date_end'],
+        $lot_data['author_id'],
+        $lot_data['category_id']
+    ]);
+
+    if (mysqli_stmt_execute($stmt)) {
+        return mysqli_insert_id($connect);
+    }
+
+    if (file_exists($filepath)) {
+        unlink($filepath);
+    }
+
+    return null;
 }
