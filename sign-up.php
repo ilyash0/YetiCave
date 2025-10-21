@@ -34,25 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (empty($errors)) {
-        $sql = "INSERT INTO users (name, email, password_hash, contact_information)
-                VALUES (?, ?, ?, ?)";
-
-
-        $stmt = db_get_prepare_stmt($connect, $sql, [
-            $new_user['name'],
-            $new_user['email'],
-            password_hash($new_user['password'], PASSWORD_DEFAULT),
-            $new_user['message']
-        ]);
-
-        $result = mysqli_stmt_execute($stmt);
-
-        if ($result) {
-            header("Location: /login.php");
-            exit();
-        } else {
-            http_response_code(500);
-        }
+        register_user($connect, $new_user["name"], $new_user["email"], $new_user["password"], $new_user["message"]);
+        header("Location: /login.php");
     }
 }
 

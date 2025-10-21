@@ -16,29 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    if (empty($email)) {
+    if (!is_filled($email)) {
         $errors[] = 'email';
     }
 
-    if (empty($password)) {
+    if (!is_filled($password)) {
         $errors[] = 'password';
     }
 
     if (empty($errors)) {
-        $sql = "SELECT id, email, name, password_hash FROM users WHERE email = ?";
-        $stmt = db_get_prepare_stmt($connect, $sql, [$email]);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $user = mysqli_fetch_assoc($result);
+        $user = authenticate_user($connect, $email, $password);
 
-        if ($user && password_verify($password, $user['password_hash'])) {
+        if ($user) {
             session_start();
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['is_auth'] = 1;
 
             header("Location: /");
-            exit();
         } else {
             $errors[] = 'auth';
         }

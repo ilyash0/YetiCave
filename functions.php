@@ -148,8 +148,7 @@ function is_valid_date(string $date): bool
 
 function is_image($file): bool
 {
-    if (!is_array($file) || !isset($file['tmp_name']) || empty($file['tmp_name']))
-    {
+    if (!is_array($file) || !isset($file['tmp_name']) || empty($file['tmp_name'])) {
         return false;
     }
 
@@ -211,6 +210,50 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uplo
 
     if (file_exists($filepath)) {
         unlink($filepath);
+    }
+
+    return null;
+}
+
+/**
+ * Регистрирует нового пользователя в базе данных.
+ *
+ * @param mysqli $connect Подключение к БД
+ * @param string $name Имя пользователя
+ * @param string $email Email
+ * @param string $password Пароль (в открытом виде)
+ * @param string $contact_information Контактная информация
+ * @return bool true при успехе, false при ошибке
+ */
+function register_user(mysqli $connect, string $name, string $email, string $password, string $contact_information): bool
+{
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    $sql = "INSERT INTO users (name, email, password_hash, contact_information)
+            VALUES (?, ?, ?, ?)";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$name, $email, $password_hash, $contact_information]);
+
+    return mysqli_stmt_execute($stmt);
+}
+
+/**
+ * Аутентифицирует пользователя по email и паролю.
+ *
+ * @param mysqli $connect Подключение к БД
+ * @param string $email Email пользователя
+ * @param string $password Пароль в открытом виде
+ * @return array|null Ассоциативный массив с данными пользователя или null, если не найден/неверный пароль
+ */
+function authenticate_user(mysqli $connect, string $email, string $password): ?array
+{
+    $sql = "SELECT id, email, name, password_hash FROM users WHERE email = ?";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$email]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $user = mysqli_fetch_assoc($result);
+
+    if ($user && password_verify($password, $user['password_hash'])) {
+        return $user;
     }
 
     return null;

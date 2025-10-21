@@ -26,7 +26,7 @@
             <span class="form__error">Введите пароль</span>
         </div>
         <?php if (in_array("auth", $errors)): ?>
-            <div class="form__error-message">Неверный email или пароль</div>
+            <div class="form__error-message">Вы ввели неверный email/пароль</div>
         <?php endif; ?>
         <button type="submit" class="button">Войти</button>
     </form>
