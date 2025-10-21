@@ -1,6 +1,7 @@
 <?php
 /** @var array $categories */
 /** @var array $lot */
+/** @var int $is_auth */
 ?>
 
 <main>
@@ -25,7 +26,7 @@
                 <p class="lot-item__description"><?= htmlspecialchars($lot['description']) ?></p>
             </div>
             <div class="lot-item__right">
-                <div class="lot-item__state">
+                <div class="lot-item__state <?= !$is_auth ? "visually-hidden" : ""?>">
                     <?php
                     $dt = get_dt_range($lot['date_end']);
 

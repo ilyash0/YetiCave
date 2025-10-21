@@ -1,7 +1,7 @@
 <?php
 session_start();
 $is_auth = $_SESSION["is_auth"] ?? 0;
-
+$user_id = $_SESSION["user_id"] ?? 0;
 $user_name = $_SESSION["user_name"] ?? "";
 
 const HOST = "localhost";

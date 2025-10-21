@@ -7,10 +7,27 @@ require_once("init.php");
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
+/** @var int $user_id */
 
 $errors = [];
 $new_lot = [];
 $categories = get_categories_array($connect);
+
+if (!$is_auth || empty($_SESSION['user_id'])) {
+    if (!$is_auth || empty($_SESSION['user_id'])) {
+        http_response_code(403);
+        $page_content = include_template("error_403.php", ["categories" => $categories]);
+        $layout_content = include_template("layout.php", [
+            "content" => $page_content,
+            "title" => "Доступ запрещён",
+            "categories" => $categories,
+            "user_name" => $user_name,
+            "is_auth" => $is_auth
+        ]);
+        print($layout_content);
+        exit();
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $new_lot = [
@@ -46,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'initial_price' => $new_lot['lot-rate'],
             'bid_step' => $new_lot['lot-step'],
             'date_end' => $new_lot['lot-date'],
-            'author_id' => 1,
+            'author_id' => $user_id,
             'uploaded_file' => $new_lot['lot-img'],
             'category_id' => $new_lot['category']
         ];
@@ -54,6 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $lot_id = create_lot($connect, $lot_data, 'uploads/');
 
         header("Location: /lot.php?id=" . $lot_id);
+        exit();
     }
 }
 

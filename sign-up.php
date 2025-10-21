@@ -8,6 +8,11 @@ require_once("init.php");
 /** @var string $user_name */
 /** @var int $is_auth */
 
+if ($is_auth) {
+    header("Location: /");
+    exit();
+}
+
 $errors = [];
 $new_user = [];
 $categories = get_categories_array($connect);
@@ -21,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ];
 
     $rules = [
-        'email' => is_valid_length($new_user['email'], 1, 255) and filter_var($_POST['email'], FILTER_VALIDATE_EMAIL),
+        'email' => is_valid_length($new_user['email'], 1, 255) && filter_var($new_user['email'], FILTER_VALIDATE_EMAIL),
         'password' => is_valid_length($new_user['password'], 8, 255),
         'name' => is_valid_length($new_user['name'], 1, 150),
         'message' => is_valid_length($new_user['message'], 1, 255)
@@ -33,9 +38,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
+    $sql_check = "SELECT id FROM users WHERE email = ?";
+    $stmt_check = db_get_prepare_stmt($connect, $sql_check, [$new_user['email']]);
+    mysqli_stmt_execute($stmt_check);
+    if (mysqli_stmt_get_result($stmt_check)->num_rows > 0) {
+        $errors[] = 'email';
+    }
+
     if (empty($errors)) {
         register_user($connect, $new_user["name"], $new_user["email"], $new_user["password"], $new_user["message"]);
         header("Location: /login.php");
+        exit();
     }
 }
 

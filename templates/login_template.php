@@ -13,11 +13,12 @@
             <?php endforeach; ?>
         </ul>
     </nav>
-    <form class="form container <?= !empty($errors) ? 'form--invalid' : '' ?>" action="/login.php" method="post"> <!-- form--invalid -->
+    <form class="form container <?= !empty($errors) ? 'form--invalid' : '' ?>" action="/login.php" method="post">
         <h2>Вход</h2>
-        <div class="form__item <?= in_array("email", $errors) ? 'form__item--invalid' : '' ?>"> <!-- form__item--invalid -->
+        <div class="form__item <?= in_array("email", $errors) ? 'form__item--invalid' : '' ?>">
             <label for="email">E-mail <sup>*</sup></label>
-            <input id="email" type="text" name="email" placeholder="Введите e-mail">
+            <input id="email" type="text" name="email" placeholder="Введите e-mail"
+                   value="<?= htmlspecialchars($_POST['email'] ?? "") ?>">
             <span class="form__error">Введите e-mail</span>
         </div>
         <div class="form__item form__item--last <?= in_array("password", $errors) ? 'form__item--invalid' : '' ?>">

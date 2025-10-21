@@ -8,6 +8,11 @@ require_once("init.php");
 /** @var string $user_name */
 /** @var int $is_auth */
 
+if ($is_auth) {
+    header("Location: /");
+    exit();
+}
+
 $errors = [];
 $new_user = [];
 $categories = get_categories_array($connect);
@@ -16,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    if (!is_filled($email)) {
+    if (!is_filled($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'email';
     }
 
@@ -28,12 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $user = authenticate_user($connect, $email, $password);
 
         if ($user) {
-            session_start();
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['is_auth'] = 1;
 
             header("Location: /");
+            exit();
         } else {
             $errors[] = 'auth';
         }
