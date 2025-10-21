@@ -1,7 +1,8 @@
 <?php
-$is_auth = rand(0, 1);
+session_start();
+$is_auth = $_SESSION["is_auth"] ?? 0;
 
-$user_name = "Илья";
+$user_name = $_SESSION["user_name"] ?? "";
 
 const HOST = "localhost";
 const USER = "kcbhnjus";
