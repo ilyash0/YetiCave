@@ -14,19 +14,9 @@ $new_lot = [];
 $categories = get_categories_array($connect);
 
 if (!$is_auth || empty($_SESSION['user_id'])) {
-    if (!$is_auth || empty($_SESSION['user_id'])) {
-        http_response_code(403);
-        $page_content = include_template("error_403.php", ["categories" => $categories]);
-        $layout_content = include_template("layout.php", [
-            "content" => $page_content,
-            "title" => "Доступ запрещён",
-            "categories" => $categories,
-            "user_name" => $user_name,
-            "is_auth" => $is_auth
-        ]);
-        print($layout_content);
-        exit();
-    }
+    http_response_code(403);
+    print(get_error_page(403, $categories, $user_name, $is_auth));
+    exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

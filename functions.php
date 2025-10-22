@@ -258,3 +258,15 @@ function authenticate_user(mysqli $connect, string $email, string $password): ?a
 
     return null;
 }
+
+function get_error_page(int $error, array $categories, string $user_name, int $is_auth): string
+{
+    $page_content = include_template("error_" . $error . ".php", ["categories" => $categories]);
+    return include_template("layout.php", [
+        "content" => $page_content,
+        "title" => "Доступ запрещён",
+        "categories" => $categories,
+        "user_name" => $user_name,
+        "is_auth" => $is_auth
+    ]);
+}

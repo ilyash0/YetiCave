@@ -8,14 +8,15 @@ require_once("init.php");
 /** @var string $user_name */
 /** @var int $is_auth */
 
-if ($is_auth) {
-    header("Location: /");
-    exit();
-}
-
 $errors = [];
 $new_user = [];
 $categories = get_categories_array($connect);
+
+if ($is_auth) {
+    http_response_code(403);
+    print(get_error_page(403, $categories, $user_name, $is_auth));
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $new_user = [
