@@ -20,7 +20,7 @@ if ($lot_id === null || $lot === null) {
 else
 {
     $title = $lot['title'];
-    $page_content = include_template("lot_template.php", ["categories" => $categories, 'lot' => $lot]);
+    $page_content = include_template("lot_template.php", ["categories" => $categories, 'lot' => $lot, "is_auth" => $is_auth]);
 }
 
 $layout_content = include_template("layout.php",
