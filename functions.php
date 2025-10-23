@@ -304,15 +304,3 @@ function search_lots(mysqli $connect, string $query): array
 
     return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 }
-
-/**
- * Формирует URL для поиска с заданной страницей.
- */
-function build_search_url(string $query, int $page): string
-{
-    $params = ['q' => $query];
-    if ($page > 1) {
-        $params['page'] = $page;
-    }
-    return '/search.php?' . http_build_query($params);
-}
