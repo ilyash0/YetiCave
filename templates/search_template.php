@@ -21,7 +21,7 @@
         <section class="lots">
             <h2>Результаты поиска по запросу «<span><?= htmlspecialchars($search_query) ?></span>»</h2>
 
-            <?php if (empty($all_results) && !empty($search_query)): ?>
+            <?php if (empty($search_results)): ?>
                 <p>Ничего не найдено по вашему запросу.</p>
             <?php elseif (empty($search_query)): ?>
                 <p>Введите поисковый запрос.</p>
