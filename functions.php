@@ -270,3 +270,49 @@ function get_error_page(int $error, array $categories, string $user_name, int $i
         "is_auth" => $is_auth
     ]);
 }
+
+
+/**
+ * Выполняет полнотекстовый поиск лотов по названию и описанию.
+ *
+ * @param mysqli $connect Подключение к БД
+ * @param string $query Поисковый запрос
+ * @return array Массив найденных лотов (может быть пустым)
+ */
+function search_lots(mysqli $connect, string $query): array
+{
+    $query = mb_strtolower(trim($query), 'UTF-8');
+
+    $sql = "SELECT 
+                l.id, 
+                l.title, 
+                l.description, 
+                l.image_url, 
+                l.initial_price, 
+                l.date_end, 
+                c.name AS category_name
+            FROM lots l
+            JOIN categories c ON l.category_id = c.id
+            WHERE 
+                MATCH(l.title, l.description) AGAINST (?)
+                AND l.date_end >= CURDATE()
+            ORDER BY l.created_at DESC";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$query]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+}
+
+/**
+ * Формирует URL для поиска с заданной страницей.
+ */
+function build_search_url(string $query, int $page): string
+{
+    $params = ['q' => $query];
+    if ($page > 1) {
+        $params['page'] = $page;
+    }
+    return '/search.php?' . http_build_query($params);
+}

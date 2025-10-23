@@ -50,3 +50,12 @@ CREATE TABLE IF NOT EXISTS bids
         ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+ALTER TABLE lots ADD FULLTEXT(title, description);
+
+ALTER TABLE lots
+    MODIFY title VARCHAR(255)
+        CHARACTER SET utf8mb4
+        COLLATE utf8mb4_unicode_ci,
+    MODIFY description TEXT
+        CHARACTER SET utf8mb4
+        COLLATE utf8mb4_unicode_ci;
