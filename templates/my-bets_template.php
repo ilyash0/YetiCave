@@ -31,12 +31,9 @@
                     $now_time = new DateTime();
                     $time_diff = $now_time->diff($end_time);
 
-                    $timer_text = $is_expired ? 'Торги окончены' : (
-                        str_pad($time_diff->h + ($time_diff->days * 24), 2, "0", STR_PAD_LEFT)
-                        . ":" .
-                        str_pad($time_diff->i, 2, "0", STR_PAD_LEFT)
-                    );
-                    $timer_class = $is_expired ? '' : ($time_diff->days === 0 && $time_diff->h < 2 ? 'timer timer--finishing' : 'timer');
+                    $timer = get_lot_timer_data($date_end);
+                    $timer_text = $timer['text'];
+                    $timer_class = $timer['class'];
 
                     // Определяем статус строки
                     $status_class = '';

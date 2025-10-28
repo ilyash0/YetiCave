@@ -1,17 +1,14 @@
 <?php
 /** @var array $lot */
 
-$dt = get_dt_range($lot['date_end']);
-$hours = $dt[0];
-$minutes = $dt[1];
-
 $image_url = htmlspecialchars($lot['image_url']);
 $title_safe = htmlspecialchars($lot['title']);
 $category_safe = htmlspecialchars($lot['category_name'] ?? '');
 $price_safe = htmlspecialchars(format_price($lot['initial_price']));
 
-$timer_text = str_pad($hours, 2, "0", STR_PAD_LEFT) . ":" . str_pad($minutes, 2, "0", STR_PAD_LEFT);
-$timer_class = $hours < 2 ? 'lot__timer timer timer--finishing' : 'lot__timer timer';
+$timer = get_lot_timer_data($lot['date_end']);
+$timer_text = $timer['text'];
+$timer_class = $timer['class'];
 ?>
 
 <li class="lots__item lot">
@@ -30,7 +27,7 @@ $timer_class = $hours < 2 ? 'lot__timer timer timer--finishing' : 'lot__timer ti
                 <span class="lot__amount">Стартовая цена</span>
                 <span class="lot__cost"><?= $price_safe ?></span>
             </div>
-            <div class="<?= $timer_class ?>">
+            <div class="lot__timer <?= $timer_class ?>">
                 <?= $timer_text ?>
             </div>
         </div>

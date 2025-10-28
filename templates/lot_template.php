@@ -21,18 +21,11 @@
             <div class="lot-item__right">
                 <div class="lot-item__state <?= !$is_auth ? "visually-hidden" : "" ?>">
                     <?php
-                    $dt = get_dt_range($lot['date_end']);
-
-                    $hours = $dt[0];
-                    $minutes = $dt[1];
-
-                    $timer_text =
-                        str_pad($hours, 2, "0", STR_PAD_LEFT)
-                        . ":" .
-                        str_pad($minutes, 2, "0", STR_PAD_LEFT);
-                    $timer_class = $hours < 2 ? 'lot-item__timer timer timer--finishing' : 'lot-item__timer timer';
+                    $timer = get_lot_timer_data($lot['date_end']);
+                    $timer_text = $timer['text'];
+                    $timer_class = $timer['class'];
                     ?>
-                    <div class="<?= htmlspecialchars($timer_class) ?>">
+                    <div class="lot-item__timer <?= htmlspecialchars($timer_class) ?>">
                         <?= htmlspecialchars($timer_text) ?>
                     </div>
                     <div class="lot-item__cost-state">
@@ -71,25 +64,7 @@
                                 <tr class="history__item">
                                     <td class="history__name"><?= htmlspecialchars($bid['bidder_name']) ?></td>
                                     <td class="history__price"><?= htmlspecialchars(format_price($bid['amount'])) ?></td>
-                                    <td class="history__time">
-                                        <?php
-                                        $bid_time = new DateTime($bid['created_at']);
-                                        $now = new DateTime();
-                                        $interval = $now->diff($bid_time);
-
-                                        if ($interval->days === 0) {
-                                            if ($interval->h > 0) {
-                                                print($interval->h . ' ч. назад');
-                                            } elseif ($interval->i > 0) {
-                                                print($interval->i . ' мин. назад');
-                                            } else {
-                                                print('только что');
-                                            }
-                                        } else {
-                                            print($bid_time->format('d.m.y в H:i'));
-                                        }
-                                        ?>
-                                    </td>
+                                    <td class="history__time"><?= format_relative_time($bid['created_at']) ?> </td>
                                 </tr>
                             <?php endforeach; ?>
                         </table>

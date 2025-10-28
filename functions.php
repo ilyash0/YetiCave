@@ -418,3 +418,32 @@ function format_relative_time(string $mysql_datetime): string
         return $bid_time->format('d.m.y в H:i');
     }
 }
+
+/**
+ * Формирует текст таймера и CSS-класс для отображения времени до окончания торгов.
+ *
+ * @param string $date_end Дата окончания торгов (DATE: 'Y-m-d')
+ * @return array ['text' => '...', 'class' => '...']
+ * @throws DateMalformedStringException
+ */
+function get_lot_timer_data(string $date_end): array
+{
+    $end_time = new DateTime($date_end);
+    $now_time = new DateTime();
+    $now = date('Y-m-d');
+
+    if ($date_end < $now) {
+        return ['text' => 'Торги окончены', 'class' => ''];
+    }
+
+    $time_diff = $now_time->diff($end_time);
+
+    $hours = $time_diff->h + ($time_diff->days * 24);
+    $minutes = $time_diff->i;
+
+    $timer_text = str_pad($hours, 2, "0", STR_PAD_LEFT) . ":" . str_pad($minutes, 2, "0", STR_PAD_LEFT);
+
+    $timer_class = $time_diff->days === 0 && $hours < 2 ? 'timer timer--finishing' : 'timer';
+
+    return ['text' => $timer_text, 'class' => $timer_class];
+}
