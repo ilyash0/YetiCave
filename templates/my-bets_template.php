@@ -19,14 +19,12 @@
                     $title_safe = htmlspecialchars($bet['lot_title']);
                     $category_name = htmlspecialchars($bet['category_name']);
                     $bet_amount = (int)$bet['bet_amount'];
-                    $current_price = (int)$bet['current_price'];
                     $date_end = $bet['date_end'];
-                    $winner_id = $bet['winner_id'];
+                    $winner_id = (int)$bet['winner_id'];
                     $lot_id = (int)$bet['lot_id'];
-                    $now = date('Y-m-d');
-                    $is_expired = $date_end < $now;
+                    $contact_info = htmlspecialchars($bet['contact_information'] ?? 'Нет данных');
 
-                    // Вычисляем оставшееся время
+                    $now = date('Y-m-d');
                     $end_time = new DateTime($date_end);
                     $now_time = new DateTime();
                     $time_diff = $now_time->diff($end_time);
@@ -35,13 +33,14 @@
                     $timer_text = $timer['text'];
                     $timer_class = $timer['class'];
 
-                    // Определяем статус строки
                     $status_class = '';
-                    if ($is_expired) {
-                        if ($winner_id && (int)$winner_id === (int)$_SESSION['user_id']) {
+                    if ($date_end < $now) {
+                        if ($winner_id && $winner_id === (int)$_SESSION['user_id']) {
                             $status_class = 'rates__item--win';
+                            $timer_text = 'Ставка выиграла';
+                            $timer_class = 'timer timer--win';
                         } else {
-                            $status_class = 'rates__item--lose';
+                            $status_class = 'rates__item--end';
                         }
                     } else {
                         $status_class = 'rates__item--active';
@@ -52,9 +51,12 @@
                             <div class="rates__img">
                                 <img src="<?= $image_url ?>" width="54" height="40" alt="<?= $title_safe ?>">
                             </div>
-                            <h3 class="rates__title">
-                                <a href="/lot.php?id=<?= $lot_id ?>"><?= $title_safe ?></a>
-                            </h3>
+                            <div>
+                                <h3 class="rates__title">
+                                    <a href="/lot.php?id=<?= $lot_id ?>"><?= $title_safe ?></a>
+                                </h3>
+                                <p><?= $contact_info ?></p>
+                            </div>
                         </td>
                         <td class="rates__category">
                             <?= $category_name ?>
@@ -63,7 +65,7 @@
                             <div class="<?= $timer_class ?>"><?= $timer_text ?></div>
                         </td>
                         <td class="rates__price">
-                            <?= htmlspecialchars(format_price($bet_amount)) ?> р
+                            <?= htmlspecialchars(format_price($bet_amount)) ?>
                         </td>
                         <td class="rates__time">
                             <?= format_relative_time($bet['bet_time']) ?>

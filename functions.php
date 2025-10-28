@@ -433,7 +433,7 @@ function get_lot_timer_data(string $date_end): array
     $now = date('Y-m-d');
 
     if ($date_end < $now) {
-        return ['text' => 'Торги окончены', 'class' => ''];
+        return ['text' => 'Торги окончены', 'class' => 'timer timer--end'];
     }
 
     $time_diff = $now_time->diff($end_time);
