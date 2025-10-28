@@ -25,17 +25,20 @@
                 <img src="../img/logo.svg" width="160" height="39" alt="Логотип компании YetiCave">
             </a>
             <form class="main-header__search" method="get" action="/search.php" autocomplete="off">
-                <input type="search" name="search" placeholder="Поиск лота" value="<?= $_GET["search"] ?? "" ?>">
+                <label>
+                    <input type="search" name="search" placeholder="Поиск лота" value="<?= $_GET["search"] ?? "" ?>">
+                </label>
                 <input class="main-header__search-btn" type="submit">
             </form>
-            <a class="main-header__add-lot button <?= !$is_auth ? "visually-hidden" : ""?>" href="/add.php">Добавить лот</a>
+            <a class="main-header__add-lot button <?= !$is_auth ? "visually-hidden" : "" ?>" href="/add.php">Добавить
+                лот</a>
 
             <nav class="user-menu">
 
                 <?php if ($is_auth === 1): ?>
                     <div class="user-menu__logged">
                         <p><?= htmlspecialchars($user_name) ?></p>
-                        <a href="pages/my-bets.html" class="user-menu__bets">Мои ставки</a>
+                        <a href="/pages/my-bets.html" class="user-menu__bets">Мои ставки</a>
                         <a href="/logout.php" class="user-menu_logout">Выход</a>
                     </div>
                 <?php else: ?>
@@ -52,18 +55,26 @@
             </nav>
         </div>
     </header>
+    <nav class="nav <?= basename($_SERVER['SCRIPT_NAME']) === 'index.php' ? ' visually-hidden' : '' ?>">
+        <ul class="nav__list container">
+            <?php foreach ($categories as $category): ?>
+                <li class="nav__item">
+                    <a href="/pages/all-lots.html"><?= htmlspecialchars($category['name']) ?></a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </nav>
     <?= $content; ?>
 </div>
+
 <footer class="main-footer">
     <nav class="nav">
         <ul class="nav__list container">
-
             <?php foreach ($categories as $category): ?>
                 <li class="nav__item">
-                    <a href="pages/all-lots.html"><?= htmlspecialchars($category['name']) ?></a>
+                    <a href="/pages/all-lots.html"><?= htmlspecialchars($category['name']) ?></a>
                 </li>
             <?php endforeach; ?>
-
         </ul>
     </nav>
     <div class="main-footer__bottom container">
@@ -109,7 +120,8 @@
                 </svg>
             </a>
         </div>
-        <a class="main-footer__add-lot button <?= !$is_auth ? "visually-hidden" : ""?>" href="/add.php">Добавить лот</a>
+        <a class="main-footer__add-lot button <?= !$is_auth ? "visually-hidden" : "" ?>" href="/add.php">Добавить
+            лот</a>
         <div class="main-footer__developed-by">
             <span class="visually-hidden">Разработано:</span>
             <a class="logo-academy" href="https://htmlacademy.ru/intensive/php">
