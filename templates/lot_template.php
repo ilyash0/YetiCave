@@ -36,18 +36,27 @@
                     <div class="lot-item__cost-state">
                         <div class="lot-item__rate">
                             <span class="lot-item__amount">Текущая цена</span>
-                            <span class="lot-item__cost"><?= htmlspecialchars(format_price($lot['initial_price'])) ?></span>
+                            <span class="lot-item__cost"><?= htmlspecialchars(format_price($lot['current_price'])) ?></span>
                         </div>
                         <div class="lot-item__min-cost">
                             Мин. ставка <span><?= htmlspecialchars(format_price($lot['initial_price'])) ?></span>
                         </div>
                     </div>
-                    <form class="lot-item__form" action="https://echo.htmlacademy.ru" method="post" autocomplete="off">
+
+                    <?php
+                    $bid_errors = $_SESSION['bid_errors'] ?? [];
+                    unset($_SESSION['bid_errors']);
+                    ?>
+
+                    <form class="lot-item__form" action="/bid.php" method="post" autocomplete="off">
+                        <input type="hidden" name="lot_id" value="<?= (int)$lot['id'] ?>">
                         <p class="lot-item__form-item form__item form__item--invalid">
                             <label for="cost">Ваша ставка</label>
                             <input id="cost" type="text" name="cost"
-                                   placeholder="<?= htmlspecialchars($lot['initial_price']) ?>">
-                            <span class="form__error">Введите наименование лота</span>
+                                   placeholder="<?= (int)($lot['current_price'] + $lot['bid_step']) ?>">
+                            <?php if (!empty($bid_errors['error'])): ?>
+                                <span class="form__error"><?= htmlspecialchars($bid_errors['error']) ?></span>
+                            <?php endif; ?>
                         </p>
                         <button type="submit" class="button">Сделать ставку</button>
                     </form>

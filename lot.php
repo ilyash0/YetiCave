@@ -10,7 +10,7 @@ require_once("init.php");
 
 $categories = get_categories_array($connect);
 $lot_id = $_GET['id'] ?? null;
-$lot = get_lot_or_null_by_id($connect, $lot_id);
+$lot = get_lot_by_id($connect, $lot_id);
 
 if ($lot_id === null || $lot === null) {
     http_response_code(404);

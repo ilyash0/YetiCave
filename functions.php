@@ -92,24 +92,27 @@ function get_lots(mysqli $connect): array
 
 /**
  * @param mysqli $connect Подключение к базе данных
- * @param int $id ID лота
+ * @param int|null $id ID лота
  * @return array|null Ассоциативный массив с данными лота или null, если не найдено
  */
-function get_lot_or_null_by_id(mysqli $connect, ?int $id): ?array
+function get_lot_by_id(mysqli $connect, ?int $id): ?array
 {
     $sql = "
-        SELECT  l.title, l.initial_price, l.image_url, 
-                c.name AS category_name, l.date_end, l.bid_step, l.description
+        SELECT  l.id, l.title, l.initial_price, l.image_url, 
+                c.name AS category_name, l.date_end, l.bid_step, l.description,
+                COALESCE(MAX(b.amount), l.initial_price) AS current_price
         FROM lots AS l
         JOIN categories c ON l.category_id = c.id
-        WHERE l.id = ?";
+        LEFT JOIN bids b ON l.id = b.lot_id
+        WHERE l.id = ?
+        GROUP BY l.id";
 
     $stmt = mysqli_prepare($connect, $sql);
     mysqli_stmt_bind_param($stmt, 'i', $id);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
-    return mysqli_fetch_assoc($result) ?: null;
+    return mysqli_fetch_assoc($result);
 }
 
 function is_filled(string $text): bool
@@ -148,7 +151,7 @@ function is_valid_date(string $date): bool
 
 function is_image($file): bool
 {
-    if (!is_array($file) || !isset($file['tmp_name']) || empty($file['tmp_name'])) {
+    if (!is_array($file) || empty($file['tmp_name'])) {
         return false;
     }
 
@@ -303,4 +306,32 @@ function search_lots(mysqli $connect, string $query): array
     $result = mysqli_stmt_get_result($stmt);
 
     return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+}
+
+/**
+ * @param mysqli $connect
+ * @param int $lot_id
+ * @param int $user_id
+ * @param int $amount
+ * @return bool
+ */
+function add_bid(mysqli $connect, int $lot_id, int $user_id, int $amount): bool
+{
+    $sql = "INSERT INTO bids (lot_id, user_id, amount) VALUES (?, ?, ?)";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id, $user_id, $amount]);
+    return mysqli_stmt_execute($stmt);
+}
+
+/**
+ * @param mysqli $connect
+ * @param int $lot_id
+ * @return array|null
+ */
+function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
+{
+    $sql = "SELECT user_id, amount FROM bids WHERE lot_id = ? ORDER BY created_at DESC LIMIT 1";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    return mysqli_fetch_assoc($result);
 }
