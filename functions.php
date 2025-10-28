@@ -335,3 +335,25 @@ function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
     $result = mysqli_stmt_get_result($stmt);
     return mysqli_fetch_assoc($result);
 }
+
+/**
+ * Получает все ставки для лота, отсортированные по времени (новые сверху).
+ *
+ * @param mysqli $connect Подключение к БД
+ * @param int $lot_id ID лота
+ * @return array Массив ставок
+ */
+function get_bids_for_lot(mysqli $connect, int $lot_id): array
+{
+    $sql = "SELECT b.amount, b.created_at, u.name AS bidder_name
+            FROM bids b
+            JOIN users u ON b.user_id = u.id
+            WHERE b.lot_id = ?
+            ORDER BY b.created_at DESC";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+}

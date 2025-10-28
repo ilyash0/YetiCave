@@ -1,6 +1,8 @@
 <?php
 /** @var array $categories */
 /** @var array $lot */
+/** @var array $bids */
+/** @var int $bids_count */
 /** @var int $is_auth */
 ?>
 
@@ -17,7 +19,7 @@
                 <p class="lot-item__description"><?= htmlspecialchars($lot['description']) ?></p>
             </div>
             <div class="lot-item__right">
-                <div class="lot-item__state <?= !$is_auth ? "visually-hidden" : ""?>">
+                <div class="lot-item__state <?= !$is_auth ? "visually-hidden" : "" ?>">
                     <?php
                     $dt = get_dt_range($lot['date_end']);
 
@@ -62,59 +64,38 @@
                     </form>
                 </div>
                 <div class="history">
-                    <h3>История ставок (<span>10</span>)</h3>
-                    <table class="history__list">
-                        <tr class="history__item">
-                            <td class="history__name">Иван</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">5 минут назад</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Константин</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">20 минут назад</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Евгений</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">Час назад</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Игорь</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">19.03.17 в 08:21</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Енакентий</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">19.03.17 в 13:20</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Семён</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">19.03.17 в 12:20</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Илья</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">19.03.17 в 10:20</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Енакентий</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">19.03.17 в 13:20</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Семён</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">19.03.17 в 12:20</td>
-                        </tr>
-                        <tr class="history__item">
-                            <td class="history__name">Илья</td>
-                            <td class="history__price">10 999 р</td>
-                            <td class="history__time">19.03.17 в 10:20</td>
-                        </tr>
-                    </table>
+                    <h3>История ставок (<span><?= $bids_count ?></span>)</h3>
+                    <?php if ($bids_count > 0): ?>
+                        <table class="history__list">
+                            <?php foreach ($bids as $bid): ?>
+                                <tr class="history__item">
+                                    <td class="history__name"><?= htmlspecialchars($bid['bidder_name']) ?></td>
+                                    <td class="history__price"><?= htmlspecialchars(format_price($bid['amount'])) ?></td>
+                                    <td class="history__time">
+                                        <?php
+                                        $bid_time = new DateTime($bid['created_at']);
+                                        $now = new DateTime();
+                                        $interval = $now->diff($bid_time);
+
+                                        if ($interval->days === 0) {
+                                            if ($interval->h > 0) {
+                                                print($interval->h . ' ч. назад');
+                                            } elseif ($interval->i > 0) {
+                                                print($interval->i . ' мин. назад');
+                                            } else {
+                                                print('только что');
+                                            }
+                                        } else {
+                                            print($bid_time->format('d.m.y в H:i'));
+                                        }
+                                        ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </table>
+                    <?php else: ?>
+                        <p>Ставок пока нет.</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
