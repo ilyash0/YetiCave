@@ -16,22 +16,20 @@ $bids_count = count($bids);
 
 if ($lot_id === null || $lot === null) {
     http_response_code(404);
-    $title = "Ошибка 404";
-    $page_content = include_template("404.php", ["categories" => $categories]);
+    print(get_error_page(404, $categories, $user_name, $is_auth));
+    exit();
 }
-else
-{
-    $title = $lot['title'];
-    $page_content = include_template("lot_template.php",
-        [
-            "categories" => $categories,
-            'lot' => $lot,
-            "bids" => $bids,
-            "bids_count" => $bids_count,
-            "is_auth" => $is_auth
-        ]
-    );
-}
+
+$title = $lot['title'];
+$page_content = include_template("lot_template.php",
+    [
+        "categories" => $categories,
+        'lot' => $lot,
+        "bids" => $bids,
+        "bids_count" => $bids_count,
+        "is_auth" => $is_auth
+    ]
+);
 
 $layout_content = include_template("layout.php",
     [
