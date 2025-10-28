@@ -23,7 +23,6 @@ if ($lot_id === null || $lot === null) {
 $title = $lot['title'];
 $page_content = include_template("lot_template.php",
     [
-        "categories" => $categories,
         'lot' => $lot,
         "bids" => $bids,
         "bids_count" => $bids_count,

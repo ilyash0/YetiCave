@@ -11,7 +11,7 @@ require_once("init.php");
 $categories = get_categories_array($connect);
 $lots = get_lots($connect);
 
-$page_content = include_template("main.php", ["categories" => $categories, 'lots' => $lots]);
+$page_content = include_template("main.php", ['lots' => $lots]);
 
 $layout_content = include_template("layout.php",
     [

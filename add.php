@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$page_content = include_template("add_template.php", ["categories" => $categories, "errors" => $errors]);
+$page_content = include_template("add_template.php", ["errors" => $errors]);
 $layout_content = include_template("layout.php",
     [
         "content" => $page_content,

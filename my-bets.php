@@ -19,7 +19,6 @@ $categories = get_categories_array($connect);
 $bets = get_bets_by_user_id($connect, $user_id);
 
 $page_content = include_template("my-bets_template.php", [
-    "categories" => $categories,
     "bets" => $bets,
     "user_name" => $user_name,
     "is_auth" => $is_auth

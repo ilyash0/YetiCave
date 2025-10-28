@@ -29,7 +29,6 @@ $offset = ($current_page - 1) * LOTS_PER_PAGE;
 $search_results = array_slice($all_results, $offset, LOTS_PER_PAGE);
 
 $page_content = include_template("search_template.php", [
-    "categories" => $categories,
     "search_query" => $search_query,
     "search_results" => $search_results,
     "total_pages" => $total_pages,
