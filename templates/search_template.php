@@ -73,7 +73,7 @@
             <?php endif; ?>
         </section>
 
-        <?php if ($show_pagination && $total_pages > 1): ?>
+        <?php if ($total_pages > 1): ?>
             <ul class="pagination-list">
                 <li class="pagination-item pagination-item-prev">
                     <a href="?search=<?= urlencode($search_query) ?>&page=<?= max(1, $current_page - 1) ?>">Назад</a>
