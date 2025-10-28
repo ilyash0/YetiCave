@@ -38,7 +38,7 @@
                 <?php if ($is_auth === 1): ?>
                     <div class="user-menu__logged">
                         <p><?= htmlspecialchars($user_name) ?></p>
-                        <a href="/pages/my-bets.html" class="user-menu__bets">Мои ставки</a>
+                        <a href="/my-bets.php" class="user-menu__bets">Мои ставки</a>
                         <a href="/logout.php" class="user-menu_logout">Выход</a>
                     </div>
                 <?php else: ?>

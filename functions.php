@@ -357,3 +357,64 @@ function get_bids_for_lot(mysqli $connect, int $lot_id): array
 
     return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 }
+
+/**
+ * Получает ставки пользователя с информацией о лоте и его состоянии.
+ *
+ * @param mysqli $connect Подключение к БД
+ * @param int $user_id ID пользователя
+ * @return array
+ */
+function get_bets_by_user_id(mysqli $connect, int $user_id): array
+{
+    $sql = "SELECT 
+                b.amount AS bet_amount,
+                b.created_at AS bet_time,
+                l.id AS lot_id,
+                l.title AS lot_title,
+                l.image_url,
+                l.date_end,
+                l.winner_id,
+                l.initial_price,
+                c.name AS category_name,
+                COALESCE(MAX(b2.amount), l.initial_price) AS current_price
+            FROM bids b
+            JOIN lots l ON b.lot_id = l.id
+            JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b2 ON l.id = b2.lot_id
+            WHERE b.user_id = ?
+            GROUP BY l.id, b.id, b.created_at
+            ORDER BY b.created_at DESC";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$user_id]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+}
+
+/**
+ * Преобразует дату MySQL DATETIME в относительное время (например, "5 минут назад").
+ *
+ * @param string $mysql_datetime Дата в формате DATETIME ('Y-m-d H:i:s')
+ * @return string Относительное время
+ * @throws DateMalformedStringException
+ */
+function format_relative_time(string $mysql_datetime): string
+{
+    $bid_time = new DateTime($mysql_datetime);
+    $now = new DateTime();
+    $interval = $now->diff($bid_time);
+
+    if ($interval->days === 0) {
+        if ($interval->h > 0) {
+            return $interval->h . ' ч. назад';
+        } elseif ($interval->i > 0) {
+            return $interval->i . ' мин. назад';
+        } else {
+            return 'только что';
+        }
+    } else {
+        return $bid_time->format('d.m.y в H:i');
+    }
+}
