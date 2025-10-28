@@ -74,10 +74,13 @@ function get_categories_array(mysqli $connect): array
 function get_lots(mysqli $connect): array
 {
     $sql = "SELECT l.id, l.title, l.initial_price, l.image_url, 
-                   c.name AS category_name, l.date_end
+                   c.name AS category_name, l.date_end,
+                   COALESCE(MAX(b.amount), l.initial_price) AS current_price
             FROM lots l
             JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b ON l.id = b.lot_id
             WHERE l.date_end >= CURDATE()
+            GROUP BY l.id, l.created_at
             ORDER BY l.created_at DESC";
 
     $result = mysqli_query($connect, $sql);
