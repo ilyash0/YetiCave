@@ -274,7 +274,8 @@ function get_error_page(int $error, array $categories, string $user_name, int $i
 
 
 /**
- * Выполняет полнотекстовый поиск лотов по названию и описанию.
+ * Выполняет полнотекстовый поиск по активным лотам (торги ещё не закончены).
+ * Результаты сортируются по дате публикации: от новых к старым.
  *
  * @param mysqli $connect Подключение к БД
  * @param string $query Поисковый запрос
@@ -291,12 +292,15 @@ function search_lots(mysqli $connect, string $query): array
                 l.image_url, 
                 l.initial_price, 
                 l.date_end, 
-                c.name AS category_name
+                c.name AS category_name,
+                COALESCE(MAX(b.amount), l.initial_price) AS current_price
             FROM lots l
             JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b ON l.id = b.lot_id
             WHERE 
                 MATCH(l.title, l.description) AGAINST (?)
                 AND l.date_end >= CURDATE()
+            GROUP BY l.id, l.created_at
             ORDER BY l.created_at DESC";
 
     $stmt = db_get_prepare_stmt($connect, $sql, [$query]);
