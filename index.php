@@ -12,7 +12,7 @@ $categories = get_categories_array($connect);
 check_and_set_expired_lots_winners($connect);
 $lots = get_lots($connect);
 
-$page_content = include_template("main.php", ["categories" => $categories, 'lots' => $lots]);
+$page_content = include_template("index_template.php", ["categories" => $categories, 'lots' => $lots]);
 
 $layout_content = include_template("layout.php",
     [

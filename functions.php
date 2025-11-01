@@ -262,7 +262,7 @@ function authenticate_user(mysqli $connect, string $email, string $password): ?a
 
 function get_error_page(int $error, array $categories, string $user_name, int $is_auth): string
 {
-    $page_content = include_template("error_" . $error . ".php");
+    $page_content = include_template($error . "_template.php");
     return include_template("layout.php", [
         "content" => $page_content,
         "title" => "Ошибка " . $error,
