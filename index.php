@@ -9,6 +9,7 @@ require_once("init.php");
 /** @var int $is_auth */
 
 $categories = get_categories_array($connect);
+check_and_set_expired_lots_winners($connect);
 $lots = get_lots($connect);
 
 $page_content = include_template("main.php", ["categories" => $categories, 'lots' => $lots]);

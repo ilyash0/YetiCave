@@ -10,6 +10,7 @@ require_once("init.php");
 
 $categories = get_categories_array($connect);
 $lot_id = $_GET['id'] ?? null;
+try_set_winner_for_lot($connect, $lot_id);
 $lot = get_lot_by_id($connect, $lot_id);
 $bids = get_bids_for_lot($connect, $lot_id);
 $bids_count = count($bids);

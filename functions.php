@@ -101,7 +101,7 @@ function get_lots(mysqli $connect): array
 function get_lot_by_id(mysqli $connect, ?int $id): ?array
 {
     $sql = "
-        SELECT  l.id, l.title, l.initial_price, l.image_url, 
+        SELECT  l.id, l.title, l.initial_price, l.image_url, l.winner_id,
                 c.name AS category_name, l.date_end, l.bid_step, l.description,
                 COALESCE(MAX(b.amount), l.initial_price) AS current_price
         FROM lots AS l
@@ -449,4 +449,64 @@ function get_lot_timer_data(string $date_end): array
     $timer_class = $time_diff->days === 0 && $hours < 2 ? 'timer timer--finishing' : 'timer';
 
     return ['text' => $timer_text, 'class' => $timer_class];
+}
+
+/**
+ * Определяет победителя для лота, если торги закончились и победитель не установлен.
+ * Обновляет поле winner_id в таблице lots.
+ *
+ * @param mysqli $connect Подключение к БД
+ * @param int $lot_id ID лота
+ * @return int|null ID победителя, если найден, иначе null
+ */
+function try_set_winner_for_lot(mysqli $connect, int $lot_id): ?int
+{
+    $now = date('Y-m-d');
+    $lot = get_lot_by_id($connect, $lot_id);
+
+    if (!$lot) {
+        return null;
+    }
+
+    if ($lot['date_end'] < $now && is_null($lot['winner_id'])) {
+        $sql = "SELECT user_id FROM bids WHERE lot_id = ? ORDER BY created_at DESC LIMIT 1";
+        $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $last_bid = mysqli_fetch_assoc($result);
+
+        if ($last_bid) {
+            $winner_id = (int)$last_bid['user_id'];
+
+            $sql = "UPDATE lots SET winner_id = ? WHERE id = ?";
+            $stmt = db_get_prepare_stmt($connect, $sql, [$winner_id, $lot_id]);
+            $result = mysqli_stmt_execute($stmt);
+
+            if ($result) {
+                return $winner_id;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Проверяет все лоты, у которых истёк срок, и устанавливает победителя,
+ * если он ещё не был установлен.
+ *
+ * @param mysqli $connect Подключение к БД
+ * @return void
+ */
+function check_and_set_expired_lots_winners(mysqli $connect): void
+{
+    $sql_check = "SELECT id FROM lots WHERE date_end < CURDATE() AND winner_id IS NULL";
+    $result_check = mysqli_query($connect, $sql_check);
+
+    if ($result_check) {
+        while ($row = mysqli_fetch_assoc($result_check)) {
+            $expired_lot_id = (int)$row['id'];
+            try_set_winner_for_lot($connect, $expired_lot_id);
+        }
+    }
 }
