@@ -34,7 +34,10 @@
                             <span class="lot-item__cost"><?= htmlspecialchars(format_price($lot['current_price'])) ?></span>
                         </div>
                         <div class="lot-item__min-cost">
-                            Мин. ставка <span><?= htmlspecialchars(format_price($lot['initial_price'])) ?></span>
+                            Мин. ставка
+                            <span>
+                                <?= htmlspecialchars(format_price((int)($lot['current_price'] + $lot['bid_step']))) ?>
+                            </span>
                         </div>
                     </div>
 

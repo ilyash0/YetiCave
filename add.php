@@ -13,7 +13,7 @@ $errors = [];
 $new_lot = [];
 $categories = get_categories_array($connect);
 
-if (!$is_auth || empty($_SESSION['user_id'])) {
+if (!$is_auth) {
     http_response_code(403);
     print(get_error_page(403, $categories, $user_name, $is_auth));
     exit();

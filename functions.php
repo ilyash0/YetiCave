@@ -2,8 +2,6 @@
 /** @var false|mysqli $connect */
 date_default_timezone_set("Asia/Yekaterinburg");
 const HOURS_IN_DAY = 24;
-const MINUTES_IN_HOUR = 60;
-const SECONDS_IN_HOUR = 3600;
 
 
 /**
@@ -15,31 +13,6 @@ function format_price(int $amount): string
     $formatted = number_format($amount, 0, ",", " ");
 
     return $formatted . " ₽";
-}
-
-/**
- * @param string $date_str
- * @return array массив [часы, минуты] в числовом формате
- */
-function get_dt_range(string $date_str): array
-{
-    $day_start = strtotime($date_str);
-
-    if ($day_start === false) {
-        return [0, 0];
-    }
-
-    $now = time();
-    $target_date = $day_start + HOURS_IN_DAY * SECONDS_IN_HOUR;
-    $difference = $target_date - $now;
-
-    if ($difference <= 0) {
-        return [0, 0];
-    }
-
-    $hours = floor($difference / SECONDS_IN_HOUR);
-    $minutes = floor(($difference % SECONDS_IN_HOUR) / MINUTES_IN_HOUR);
-    return [$hours, $minutes];
 }
 
 /**
@@ -118,22 +91,40 @@ function get_lot_by_id(mysqli $connect, ?int $id): ?array
     return mysqli_fetch_assoc($result);
 }
 
+/**
+ * @param string $text
+ * @return bool
+ */
 function is_filled(string $text): bool
 {
     return !empty($text);
 }
 
+/**
+ * @param string $text
+ * @param int $min
+ * @param int $max
+ * @return bool
+ */
 function is_valid_length(string $text, int $min, int $max): bool
 {
     $len = strlen($text);
     return $len >= $min and $len <= $max;
 }
 
+/**
+ * @param string $value
+ * @return bool
+ */
 function is_valid_price(string $value): bool
 {
     return is_numeric($value) && $value > 0;
 }
 
+/**
+ * @param string $date
+ * @return bool
+ */
 function is_valid_date(string $date): bool
 {
     $format = 'Y-m-d';
@@ -152,6 +143,10 @@ function is_valid_date(string $date): bool
     return $date_obj > $today;
 }
 
+/**
+ * @param $file
+ * @return bool
+ */
 function is_image($file): bool
 {
     if (!is_array($file) || empty($file['tmp_name'])) {
@@ -441,7 +436,7 @@ function get_lot_timer_data(string $date_end): array
 
     $time_diff = $now_time->diff($end_time);
 
-    $hours = $time_diff->h + ($time_diff->days * 24);
+    $hours = $time_diff->h + ($time_diff->days * HOURS_IN_DAY);
     $minutes = $time_diff->i;
 
     $timer_text = str_pad($hours, 2, "0", STR_PAD_LEFT) . ":" . str_pad($minutes, 2, "0", STR_PAD_LEFT);
