@@ -19,7 +19,12 @@
                 <p class="lot-item__description"><?= htmlspecialchars($lot['description']) ?></p>
             </div>
             <div class="lot-item__right">
-                <div class="lot-item__state <?= !$is_auth ? "visually-hidden" : "" ?>">
+                <?php
+                $now = date('Y-m-d');
+                $lot_is_closed = $lot['date_end'] < $now;
+                $should_hide_bid_form = !$is_auth || $lot_is_closed;
+                ?>
+                <div class="lot-item__state <?= $should_hide_bid_form ? "visually-hidden" : "" ?>">
                     <?php
                     $timer = get_lot_timer_data($lot['date_end']);
                     $timer_text = $timer['text'];
