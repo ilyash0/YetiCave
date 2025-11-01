@@ -9,13 +9,22 @@ require_once("init.php");
 /** @var int $is_auth */
 
 $categories = get_categories_array($connect);
-$lot_id = $_GET['id'] ?? null;
+$lot_id_param = $_GET['id'] ?? null;
+
+if (!is_numeric($lot_id_param)) {
+    http_response_code(404);
+    print(get_error_page(404, $categories, $user_name, $is_auth));
+    exit();
+}
+
+$lot_id = (int)$lot_id_param;
+
 try_set_winner_for_lot($connect, $lot_id);
 $lot = get_lot_by_id($connect, $lot_id);
 $bids = get_bids_for_lot($connect, $lot_id);
 $bids_count = count($bids);
 
-if ($lot_id === null || $lot === null) {
+if ($lot === null) {
     http_response_code(404);
     print(get_error_page(404, $categories, $user_name, $is_auth));
     exit();
@@ -42,4 +51,3 @@ $layout_content = include_template("layout.php",
 );
 
 print($layout_content);
-
