@@ -77,6 +77,31 @@ function is_image($file): bool
     return in_array($file_type, ['image/jpeg', 'image/png', 'image/webp']);
 }
 
+/**
+ * Выполняет расчёт пагинации и возвращает нужный срез данных.
+
+ */
+function paginate_data(array $data, int $current_page, int $items_per_page): array
+{
+    $total_count = count($data);
+    $total_pages = ceil($total_count / $items_per_page);
+
+    if ($total_pages > 0) {
+        $current_page = max(1, min($current_page, $total_pages));
+    } else {
+        $current_page = 1;
+    }
+
+    $offset = ($current_page - 1) * $items_per_page;
+    $items = array_slice($data, $offset, $items_per_page);
+
+    return [
+        'items' => $items,
+        'total_pages' => $total_pages,
+        'current_page' => $current_page
+    ];
+}
+
 // —————————————————————————————————————————————————————————————————————————————
 // 2. ФУНКЦИИ ДЛЯ РАБОТЫ С БАЗОЙ ДАННЫХ (SELECT, INSERT, UPDATE)
 // —————————————————————————————————————————————————————————————————————————————
