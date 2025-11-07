@@ -105,6 +105,41 @@ function paginate_data(array $data, int $current_page, int $items_per_page): arr
 // —————————————————————————————————————————————————————————————————————————————
 // 2. ФУНКЦИИ ДЛЯ РАБОТЫ С БАЗОЙ ДАННЫХ (SELECT, INSERT, UPDATE)
 // —————————————————————————————————————————————————————————————————————————————
+/**
+ * Выполняет SQL-запрос SELECT и возвращает все строки.
+ * Использует подготовленные выражения (prepare).
+ */
+function db_fetch_all(mysqli $connect, string $sql, array $params = []): array
+{
+    if (empty($params)) {
+        $result = mysqli_query($connect, $sql);
+        return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    }
+
+    $stmt = db_get_prepare_stmt($connect, $sql, $params);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+/**
+ * Выполняет SQL-запрос SELECT и возвращает одну строку.
+ * Использует подготовленные выражения (prepare).
+ */
+function db_fetch_one(mysqli $connect, string $sql, array $params = []): ?array
+{
+    if (empty($params)) {
+        $result = mysqli_query($connect, $sql);
+        return mysqli_fetch_assoc($result);
+    }
+
+    $stmt = db_get_prepare_stmt($connect, $sql, $params);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return mysqli_fetch_assoc($result);
+}
 
 /**
  * Возвращает список всех категорий.
@@ -112,9 +147,8 @@ function paginate_data(array $data, int $current_page, int $items_per_page): arr
 function get_categories_list(mysqli $connect): array
 {
     $sql = "SELECT id, name, symbolic_code FROM categories";
-    $result = mysqli_query($connect, $sql);
 
-    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    return db_fetch_all($connect, $sql);
 }
 
 /**
@@ -132,9 +166,7 @@ function get_active_lots_list(mysqli $connect): array
             GROUP BY l.id, l.created_at
             ORDER BY l.created_at DESC";
 
-    $result = mysqli_query($connect, $sql);
-
-    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    return db_fetch_all($connect, $sql);
 }
 
 /**
@@ -157,11 +189,7 @@ function get_lot_by_id(mysqli $connect, ?int $id): ?array
             WHERE l.id = ?
             GROUP BY l.id";
 
-    $stmt = db_get_prepare_stmt($connect, $sql, [$id]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return mysqli_fetch_assoc($result);
+    return db_fetch_one($connect, $sql, [$id]);
 }
 
 /**
@@ -189,11 +217,7 @@ function search_lots_by_query(mysqli $connect, string $query): array
             GROUP BY l.id, l.created_at
             ORDER BY l.created_at DESC";
 
-    $stmt = db_get_prepare_stmt($connect, $sql, [$query]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    return db_fetch_all($connect, $sql, [$query]);
 }
 
 /**
@@ -207,11 +231,7 @@ function get_bids_by_lot_id(mysqli $connect, int $lot_id): array
             WHERE b.lot_id = ?
             ORDER BY b.created_at DESC";
 
-    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    return db_fetch_all($connect, $sql, [$lot_id]);
 }
 
 /**
@@ -233,11 +253,7 @@ function get_bets_by_user_id(mysqli $connect, int $user_id): array
             GROUP BY l.id, b.id, b.created_at
             ORDER BY b.created_at DESC";
 
-    $stmt = db_get_prepare_stmt($connect, $sql, [$user_id]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+    return db_fetch_all($connect, $sql, [$user_id]);
 }
 
 /**
@@ -246,11 +262,7 @@ function get_bets_by_user_id(mysqli $connect, int $user_id): array
 function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
 {
     $sql = "SELECT user_id, amount FROM bids WHERE lot_id = ? ORDER BY created_at DESC LIMIT 1";
-    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return mysqli_fetch_assoc($result);
+    return db_fetch_one($connect, $sql, [$lot_id]);
 }
 
 // —————————————————————————————————————————————————————————————————————————————
