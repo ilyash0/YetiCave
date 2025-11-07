@@ -12,4 +12,5 @@ const DATABASE = "kcbhnjus_m1";
 $connect = mysqli_connect(HOST, USER, PASSWORD, DATABASE);
 if ($connect) {
     mysqli_set_charset($connect, "utf8");
+    check_and_set_expired_lots_winners($connect);
 }
