@@ -10,7 +10,7 @@ require_once("init.php");
 
 $errors = [];
 $new_user = [];
-$categories = get_categories_array($connect);
+$categories = get_categories_list($connect);
 
 if ($is_auth) {
     http_response_code(403);

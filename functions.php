@@ -3,127 +3,45 @@
 date_default_timezone_set("Asia/Yekaterinburg");
 const HOURS_IN_DAY = 24;
 
+// —————————————————————————————————————————————————————————————————————————————
+// 1. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (валидация, форматирование и т.д.)
+// —————————————————————————————————————————————————————————————————————————————
 
 /**
- * @param int $amount
- * @return string
+ * Форматирует цену с пробелами-разделителями и символом рубля.
  */
 function format_price(int $amount): string
 {
-    $formatted = number_format($amount, 0, ",", " ");
-
-    return $formatted . " ₽";
+    return number_format($amount, 0, '', ' ') . ' ₽';
 }
 
 /**
- * @param mysqli $connect
- * @return array Массив ассоциативных массивов с данными категорий. Каждый элемент содержит:
- * * id (int) - интенсификатор категории
- * * name (string) - читаемое название
- * * symbolic_code (string) - символьный код для URL
- */
-function get_categories_array(mysqli $connect): array
-{
-    $sql = "SELECT id, name, symbolic_code FROM categories";
-    $result = mysqli_query($connect, $sql);
-
-    $categories = [];
-    if ($result) {
-        $categories = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    }
-
-    return $categories;
-}
-
-/**
- * @param mysqli $connect
- * @return array Массив ассоциативных массивов с данными лотов. Каждый элемент содержит:
- * * title (string) - название лота
- * * initial_price (int) - начальная цена
- * * image_url (string) - путь к изображению
- * * category_name (string) - название категории (из таблицы categories)
- * * date_end (string) - дата окончания торгов в формате YYYY-MM-DD
- */
-function get_lots(mysqli $connect): array
-{
-    $sql = "SELECT l.id, l.title, l.initial_price, l.image_url, 
-                   c.name AS category_name, l.date_end,
-                   COALESCE(MAX(b.amount), l.initial_price) AS current_price
-            FROM lots l
-            JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b ON l.id = b.lot_id
-            WHERE l.date_end >= CURDATE()
-            GROUP BY l.id, l.created_at
-            ORDER BY l.created_at DESC";
-
-    $result = mysqli_query($connect, $sql);
-
-    $lots = [];
-    if ($result) {
-        $lots = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    }
-
-    return $lots;
-}
-
-/**
- * @param mysqli $connect Подключение к базе данных
- * @param int|null $id ID лота
- * @return array|null Ассоциативный массив с данными лота или null, если не найдено
- */
-function get_lot_by_id(mysqli $connect, ?int $id): ?array
-{
-    $sql = "
-        SELECT  l.id, l.title, l.initial_price, l.image_url, l.winner_id,
-                c.name AS category_name, l.date_end, l.bid_step, l.description,
-                COALESCE(MAX(b.amount), l.initial_price) AS current_price
-        FROM lots AS l
-        JOIN categories c ON l.category_id = c.id
-        LEFT JOIN bids b ON l.id = b.lot_id
-        WHERE l.id = ?
-        GROUP BY l.id";
-
-    $stmt = mysqli_prepare($connect, $sql);
-    mysqli_stmt_bind_param($stmt, 'i', $id);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return mysqli_fetch_assoc($result);
-}
-
-/**
- * @param string $text
- * @return bool
+ * Проверяет, что строка не пуста.
  */
 function is_filled(string $text): bool
 {
-    return !empty($text);
+    return !empty(trim($text));
 }
 
 /**
- * @param string $text
- * @param int $min
- * @param int $max
- * @return bool
+ * Проверяет, что длина строки в заданном диапазоне.
  */
 function is_valid_length(string $text, int $min, int $max): bool
 {
     $len = strlen($text);
-    return $len >= $min and $len <= $max;
+    return $len >= $min && $len <= $max;
 }
 
 /**
- * @param string $value
- * @return bool
+ * Проверяет, что значение — положительное число.
  */
 function is_valid_price(string $value): bool
 {
-    return is_numeric($value) && $value > 0;
+    return is_numeric($value) && (int)$value > 0;
 }
 
 /**
- * @param string $date
- * @return bool
+ * Проверяет, что дата в формате Y-m-d и в будущем.
  */
 function is_valid_date(string $date): bool
 {
@@ -144,8 +62,7 @@ function is_valid_date(string $date): bool
 }
 
 /**
- * @param $file
- * @return bool
+ * Проверяет, что файл — изображение (jpeg, png, webp).
  */
 function is_image($file): bool
 {
@@ -154,20 +71,205 @@ function is_image($file): bool
     }
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $file_name = $file['tmp_name'];
-    $file_type = finfo_file($finfo, $file_name);
+    $file_type = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
-    return $file_type == 'image/jpeg' or $file_type == 'image/png' or $file_type == 'image/webp';
+    return in_array($file_type, ['image/jpeg', 'image/png', 'image/webp']);
+}
+
+// —————————————————————————————————————————————————————————————————————————————
+// 2. ФУНКЦИИ ДЛЯ РАБОТЫ С БАЗОЙ ДАННЫХ (SELECT, INSERT, UPDATE)
+// —————————————————————————————————————————————————————————————————————————————
+
+/**
+ * Возвращает список всех категорий.
+ */
+function get_categories_list(mysqli $connect): array
+{
+    $sql = "SELECT id, name, symbolic_code FROM categories";
+    $result = mysqli_query($connect, $sql);
+
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
 }
 
 /**
- * Создаёт новый лот: сохраняет изображение и записывает данные в БД.
- *
- * @param mysqli $connect Подключение к БД
- * @param array $lot_data Данные лота: title, description, initial_price, bid_step, date_end, author_id, category_id, lot-img
- * @param string $upload_dir Каталог для загрузки изображений (например, 'uploads/')
- * @return int|null ID созданного лота или null в случае ошибки
+ * Возвращает активные лоты (торги не закончены).
+ */
+function get_active_lots_list(mysqli $connect): array
+{
+    $sql = "SELECT l.id, l.title, l.initial_price, l.image_url, 
+                   c.name AS category_name, l.date_end,
+                   COALESCE(MAX(b.amount), l.initial_price) AS current_price
+            FROM lots l
+            JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b ON l.id = b.lot_id
+            WHERE l.date_end >= CURDATE()
+            GROUP BY l.id, l.created_at
+            ORDER BY l.created_at DESC";
+
+    $result = mysqli_query($connect, $sql);
+
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+/**
+ * Возвращает лот по ID.
+ */
+function get_lot_by_id(mysqli $connect, ?int $id): ?array
+{
+    if ($id === null) {
+        return null;
+    }
+
+    $sql = "SELECT 
+                l.id, l.title, l.initial_price, l.image_url, l.winner_id,
+                l.description, l.bid_step, l.date_end, l.author_id,
+                c.name AS category_name,
+                COALESCE(MAX(b.amount), l.initial_price) AS current_price
+            FROM lots l
+            JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b ON l.id = b.lot_id
+            WHERE l.id = ?
+            GROUP BY l.id";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$id]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return mysqli_fetch_assoc($result);
+}
+
+/**
+ * Выполняет полнотекстовый поиск по активным лотам.
+ */
+function search_lots_by_query(mysqli $connect, string $query): array
+{
+    $query = trim($query);
+    if (strlen($query) < 3) {
+        return [];
+    }
+
+    $query = mb_strtolower($query, 'UTF-8');
+
+    $sql = "SELECT 
+                l.id, l.title, l.description, l.image_url, l.initial_price, 
+                l.date_end, c.name AS category_name,
+                COALESCE(MAX(b.amount), l.initial_price) AS current_price
+            FROM lots l
+            JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b ON l.id = b.lot_id
+            WHERE 
+                MATCH(l.title, l.description) AGAINST (?)
+                AND l.date_end >= CURDATE()
+            GROUP BY l.id, l.created_at
+            ORDER BY l.created_at DESC";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$query]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+/**
+ * Возвращает ставки для лота (новые сверху).
+ */
+function get_bids_by_lot_id(mysqli $connect, int $lot_id): array
+{
+    $sql = "SELECT b.amount, b.created_at, u.name AS bidder_name
+            FROM bids b
+            JOIN users u ON b.user_id = u.id
+            WHERE b.lot_id = ?
+            ORDER BY b.created_at DESC";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+/**
+ * Возвращает ставки пользователя с информацией о лоте.
+ */
+function get_bets_by_user_id(mysqli $connect, int $user_id): array
+{
+    $sql = "SELECT 
+                b.amount AS bet_amount, b.created_at AS bet_time, l.id AS lot_id,
+                l.title AS lot_title, l.image_url, l.date_end, l.winner_id,
+                l.initial_price, l.author_id, u.contact_information, c.name AS category_name,
+                COALESCE(MAX(b2.amount), l.initial_price) AS current_price
+            FROM bids b
+            JOIN lots l ON b.lot_id = l.id
+            JOIN users u ON l.author_id = u.id
+            JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b2 ON l.id = b2.lot_id
+            WHERE b.user_id = ?
+            GROUP BY l.id, b.id, b.created_at
+            ORDER BY b.created_at DESC";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$user_id]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
+}
+
+/**
+ * Возвращает последнюю ставку для лота.
+ */
+function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
+{
+    $sql = "SELECT user_id, amount FROM bids WHERE lot_id = ? ORDER BY created_at DESC LIMIT 1";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return mysqli_fetch_assoc($result);
+}
+
+// —————————————————————————————————————————————————————————————————————————————
+// 3. ФУНКЦИИ ДЛЯ РАБОТЫ С АВТОРИЗАЦИЕЙ
+// —————————————————————————————————————————————————————————————————————————————
+
+/**
+ * Аутентифицирует пользователя.
+ */
+function authenticate_user(mysqli $connect, string $email, string $password): ?array
+{
+    $sql = "SELECT id, email, name, password_hash FROM users WHERE email = ?";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$email]);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $user = mysqli_fetch_assoc($result);
+
+    if ($user && password_verify($password, $user['password_hash'])) {
+        return $user;
+    }
+
+    return null;
+}
+
+/**
+ * Регистрирует нового пользователя.
+ */
+function register_user(mysqli $connect, string $name, string $email, string $password, string $contact_information): bool
+{
+    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    $sql = "INSERT INTO users (name, email, password_hash, contact_information)
+            VALUES (?, ?, ?, ?)";
+
+    $stmt = db_get_prepare_stmt($connect, $sql, [$name, $email, $password_hash, $contact_information]);
+
+    return mysqli_stmt_execute($stmt);
+}
+
+// —————————————————————————————————————————————————————————————————————————————
+// 4. ФУНКЦИИ ДЛЯ РАБОТЫ С ЛОТАМИ И СТАВКАМИ
+// —————————————————————————————————————————————————————————————————————————————
+
+/**
+ * Создаёт новый лот.
  */
 function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uploads/'): ?int
 {
@@ -184,14 +286,7 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uplo
     }
 
     $sql = "INSERT INTO lots (
-                title, 
-                description, 
-                image_url, 
-                initial_price, 
-                bid_step, 
-                date_end, 
-                author_id, 
-                category_id
+                title, description, image_url, initial_price, bid_step, date_end, author_id, category_id
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = db_get_prepare_stmt($connect, $sql, [
@@ -217,105 +312,7 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uplo
 }
 
 /**
- * Регистрирует нового пользователя в базе данных.
- *
- * @param mysqli $connect Подключение к БД
- * @param string $name Имя пользователя
- * @param string $email Email
- * @param string $password Пароль (в открытом виде)
- * @param string $contact_information Контактная информация
- * @return bool true при успехе, false при ошибке
- */
-function register_user(mysqli $connect, string $name, string $email, string $password, string $contact_information): bool
-{
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
-    $sql = "INSERT INTO users (name, email, password_hash, contact_information)
-            VALUES (?, ?, ?, ?)";
-
-    $stmt = db_get_prepare_stmt($connect, $sql, [$name, $email, $password_hash, $contact_information]);
-
-    return mysqli_stmt_execute($stmt);
-}
-
-/**
- * Аутентифицирует пользователя по email и паролю.
- *
- * @param mysqli $connect Подключение к БД
- * @param string $email Email пользователя
- * @param string $password Пароль в открытом виде
- * @return array|null Ассоциативный массив с данными пользователя или null, если не найден/неверный пароль
- */
-function authenticate_user(mysqli $connect, string $email, string $password): ?array
-{
-    $sql = "SELECT id, email, name, password_hash FROM users WHERE email = ?";
-    $stmt = db_get_prepare_stmt($connect, $sql, [$email]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $user = mysqli_fetch_assoc($result);
-
-    if ($user && password_verify($password, $user['password_hash'])) {
-        return $user;
-    }
-
-    return null;
-}
-
-function get_error_page(int $error, array $categories, string $user_name, int $is_auth): string
-{
-    $page_content = include_template($error . "_template.php");
-    return include_template("layout.php", [
-        "content" => $page_content,
-        "title" => "Ошибка " . $error,
-        "categories" => $categories,
-        "user_name" => $user_name,
-        "is_auth" => $is_auth
-    ]);
-}
-
-
-/**
- * Выполняет полнотекстовый поиск по активным лотам (торги ещё не закончены).
- * Результаты сортируются по дате публикации: от новых к старым.
- *
- * @param mysqli $connect Подключение к БД
- * @param string $query Поисковый запрос
- * @return array Массив найденных лотов (может быть пустым)
- */
-function search_lots(mysqli $connect, string $query): array
-{
-    $query = mb_strtolower(trim($query), 'UTF-8');
-
-    $sql = "SELECT 
-                l.id, 
-                l.title, 
-                l.description, 
-                l.image_url, 
-                l.initial_price, 
-                l.date_end, 
-                c.name AS category_name,
-                COALESCE(MAX(b.amount), l.initial_price) AS current_price
-            FROM lots l
-            JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b ON l.id = b.lot_id
-            WHERE 
-                MATCH(l.title, l.description) AGAINST (?)
-                AND l.date_end >= CURDATE()
-            GROUP BY l.id, l.created_at
-            ORDER BY l.created_at DESC";
-
-    $stmt = db_get_prepare_stmt($connect, $sql, [$query]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-}
-
-/**
- * @param mysqli $connect
- * @param int $lot_id
- * @param int $user_id
- * @param int $amount
- * @return bool
+ * Добавляет ставку.
  */
 function add_bid(mysqli $connect, int $lot_id, int $user_id, int $amount): bool
 {
@@ -325,110 +322,52 @@ function add_bid(mysqli $connect, int $lot_id, int $user_id, int $amount): bool
 }
 
 /**
- * @param mysqli $connect
- * @param int $lot_id
- * @return array|null
+ * Проверяет и устанавливает победителя для лота.
  */
-function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
+function try_set_winner_for_lot(mysqli $connect, int $lot_id): ?int
 {
-    $sql = "SELECT user_id, amount FROM bids WHERE lot_id = ? ORDER BY created_at DESC LIMIT 1";
-    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    return mysqli_fetch_assoc($result);
+    $now = date('Y-m-d');
+    $lot = get_lot_by_id($connect, $lot_id);
+
+    if (!$lot || $lot['date_end'] >= $now || $lot['winner_id'] !== null) {
+        return null;
+    }
+
+    $last_bid = get_last_bid_for_lot($connect, $lot_id);
+    if (!$last_bid) {
+        return null;
+    }
+
+    $winner_id = (int)$last_bid['user_id'];
+    $sql = "UPDATE lots SET winner_id = ? WHERE id = ?";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$winner_id, $lot_id]);
+
+    return mysqli_stmt_execute($stmt) ? $winner_id : null;
 }
 
 /**
- * Получает все ставки для лота, отсортированные по времени (новые сверху).
- *
- * @param mysqli $connect Подключение к БД
- * @param int $lot_id ID лота
- * @return array Массив ставок
+ * Проверяет и устанавливает победителей для всех истёкших лотов.
  */
-function get_bids_for_lot(mysqli $connect, int $lot_id): array
+function check_and_set_expired_lots_winners(mysqli $connect): void
 {
-    $sql = "SELECT b.amount, b.created_at, u.name AS bidder_name
-            FROM bids b
-            JOIN users u ON b.user_id = u.id
-            WHERE b.lot_id = ?
-            ORDER BY b.created_at DESC";
+    $sql_check = "SELECT id FROM lots WHERE date_end < CURDATE() AND winner_id IS NULL";
+    $result_check = mysqli_query($connect, $sql_check);
 
-    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-}
-
-/**
- * Получает ставки пользователя с информацией о лоте и его состоянии.
- *
- * @param mysqli $connect Подключение к БД
- * @param int $user_id ID пользователя
- * @return array
- */
-function get_bets_by_user_id(mysqli $connect, int $user_id): array
-{
-    $sql = "SELECT 
-                b.amount AS bet_amount,
-                b.created_at AS bet_time,
-                l.id AS lot_id,
-                l.title AS lot_title,
-                l.image_url,
-                l.date_end,
-                l.winner_id,
-                l.initial_price,
-                c.name AS category_name,
-                COALESCE(MAX(b2.amount), l.initial_price) AS current_price
-            FROM bids b
-            JOIN lots l ON b.lot_id = l.id
-            JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b2 ON l.id = b2.lot_id
-            WHERE b.user_id = ?
-            GROUP BY l.id, b.id, b.created_at
-            ORDER BY b.created_at DESC";
-
-    $stmt = db_get_prepare_stmt($connect, $sql, [$user_id]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-}
-
-/**
- * Преобразует дату MySQL DATETIME в относительное время (например, "5 минут назад").
- *
- * @param string $mysql_datetime Дата в формате DATETIME ('Y-m-d H:i:s')
- * @return string Относительное время
- * @throws DateMalformedStringException
- */
-function format_relative_time(string $mysql_datetime): string
-{
-    $bid_time = new DateTime($mysql_datetime);
-    $now = new DateTime();
-    $interval = $now->diff($bid_time);
-
-    if ($interval->days === 0) {
-        if ($interval->h > 0) {
-            return $interval->h . ' ч. назад';
-        } elseif ($interval->i > 0) {
-            return $interval->i . ' мин. назад';
-        } else {
-            return 'только что';
+    if ($result_check) {
+        while ($row = mysqli_fetch_assoc($result_check)) {
+            try_set_winner_for_lot($connect, (int)$row['id']);
         }
-    } else {
-        return $bid_time->format('d.m.y в H:i');
     }
 }
 
+// —————————————————————————————————————————————————————————————————————————————
+// 5. ФУНКЦИИ ДЛЯ ОТОБРАЖЕНИЯ (таймеры, время)
+// —————————————————————————————————————————————————————————————————————————————
+
 /**
- * Формирует текст таймера и CSS-класс для отображения времени до окончания торгов.
- *
- * @param string $date_end Дата окончания торгов (DATE: 'Y-m-d')
- * @return array ['text' => '...', 'class' => '...']
- * @throws DateMalformedStringException
+ * Формирует таймер и класс для лота.
  */
-function get_lot_timer_data(string $date_end): array
+function format_lot_timer_data(string $date_end): array
 {
     $end_time = new DateTime($date_end);
     $now_time = new DateTime();
@@ -439,73 +378,52 @@ function get_lot_timer_data(string $date_end): array
     }
 
     $time_diff = $now_time->diff($end_time);
-
     $hours = $time_diff->h + ($time_diff->days * HOURS_IN_DAY);
     $minutes = $time_diff->i;
 
     $timer_text = str_pad($hours, 2, "0", STR_PAD_LEFT) . ":" . str_pad($minutes, 2, "0", STR_PAD_LEFT);
-
     $timer_class = $time_diff->days === 0 && $hours < 2 ? 'timer timer--finishing' : 'timer';
 
     return ['text' => $timer_text, 'class' => $timer_class];
 }
 
 /**
- * Определяет победителя для лота, если торги закончились и победитель не установлен.
- * Обновляет поле winner_id в таблице lots.
- *
- * @param mysqli $connect Подключение к БД
- * @param int $lot_id ID лота
- * @return int|null ID победителя, если найден, иначе null
+ * Формирует относительное время (например, "5 мин. назад").
  */
-function try_set_winner_for_lot(mysqli $connect, int $lot_id): ?int
+function format_relative_time(string $mysql_datetime): string
 {
-    $now = date('Y-m-d');
-    $lot = get_lot_by_id($connect, $lot_id);
+    $bid_time = new DateTime($mysql_datetime);
+    $now = new DateTime();
+    $interval = $now->diff($bid_time);
 
-    if (!$lot) {
-        return null;
-    }
-
-    if ($lot['date_end'] < $now && is_null($lot['winner_id'])) {
-        $sql = "SELECT user_id FROM bids WHERE lot_id = ? ORDER BY created_at DESC LIMIT 1";
-        $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id]);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $last_bid = mysqli_fetch_assoc($result);
-
-        if ($last_bid) {
-            $winner_id = (int)$last_bid['user_id'];
-
-            $sql = "UPDATE lots SET winner_id = ? WHERE id = ?";
-            $stmt = db_get_prepare_stmt($connect, $sql, [$winner_id, $lot_id]);
-            $result = mysqli_stmt_execute($stmt);
-
-            if ($result) {
-                return $winner_id;
-            }
+    if ($interval->days === 0) {
+        if ($interval->h > 0) {
+            return $interval->h . ' ч. назад';
         }
+        if ($interval->i > 0) {
+            return $interval->i . ' мин. назад';
+        }
+        return 'только что';
     }
 
-    return null;
+    return $bid_time->format('d.m.y в H:i');
 }
 
-/**
- * Проверяет все лоты, у которых истёк срок, и устанавливает победителя,
- * если он ещё не был установлен.
- *
- * @param mysqli $connect Подключение к БД
- * @return void
- */
-function check_and_set_expired_lots_winners(mysqli $connect): void
-{
-    $sql_check = "SELECT id FROM lots WHERE date_end < CURDATE() AND winner_id IS NULL";
-    $result_check = mysqli_query($connect, $sql_check);
+// —————————————————————————————————————————————————————————————————————————————
+// 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (например, для шаблонов)
+// —————————————————————————————————————————————————————————————————————————————
 
-    if ($result_check) {
-        while ($row = mysqli_fetch_assoc($result_check)) {
-            $expired_lot_id = (int)$row['id'];
-            try_set_winner_for_lot($connect, $expired_lot_id);
-        }
-    }
+/**
+ * Возвращает HTML-страницу ошибки.
+ */
+function get_error_page(int $error, array $categories, string $user_name, int $is_auth): string
+{
+    $page_content = include_template($error . "_template.php");
+    return include_template("layout.php", [
+        "content" => $page_content,
+        "title" => "Ошибка " . $error,
+        "categories" => $categories,
+        "user_name" => $user_name,
+        "is_auth" => $is_auth
+    ]);
 }

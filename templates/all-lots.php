@@ -1,22 +1,24 @@
 <?php
+/** @var array $categories */
 /** @var string $search_query */
-/** @var array $lots */
+/** @var array $search_results */
 /** @var int $current_page */
 /** @var int $total_pages */
+/** @var bool $show_pagination */
 ?>
 
 <main>
     <div class="container">
         <section class="lots">
-            <h2>Результаты поиска по запросу «<span><?= htmlspecialchars($search_query) ?></span>»</h2>
+            <h2>Все лоты в категории «<span><?= htmlspecialchars($search_query) ?></span>»</h2>
 
-            <?php if (empty($lots)): ?>
+            <?php if (empty($search_results)): ?>
                 <p>Ничего не найдено по вашему запросу.</p>
             <?php elseif (empty($search_query)): ?>
                 <p>Введите поисковый запрос.</p>
             <?php else: ?>
                 <ul class="lots__list">
-                    <?php foreach ($lots as $lot): ?>
+                    <?php foreach ($search_results as $lot): ?>
                         <?= include_template('lot-item.php', ['lot' => $lot]) ?>
                     <?php endforeach; ?>
                 </ul>

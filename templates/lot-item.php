@@ -6,7 +6,7 @@ $title_safe = htmlspecialchars($lot['title']);
 $category_safe = htmlspecialchars($lot['category_name'] ?? '');
 $price_safe = htmlspecialchars(format_price($lot['current_price']));
 
-$timer = get_lot_timer_data($lot['date_end']);
+$timer = format_lot_timer_data($lot['date_end']);
 $timer_text = $timer['text'];
 $timer_class = $timer['class'];
 ?>

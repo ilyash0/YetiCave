@@ -13,7 +13,8 @@ const LOTS_PER_PAGE = 9;
 $categories = get_categories_list($connect);
 $search_query = trim($_GET["search"] ?? "");
 
-if (empty($search_query)) {
+if (empty($search_query))
+{
     header("Location: /");
     exit();
 }
@@ -30,7 +31,7 @@ $search_results = array_slice($all_results, $offset, LOTS_PER_PAGE);
 
 $page_content = include_template("search_template.php", [
     "search_query" => $search_query,
-    "lots" => $search_results,
+    "search_results" => $search_results,
     "total_pages" => $total_pages,
     "current_page" => $current_page
 ]);

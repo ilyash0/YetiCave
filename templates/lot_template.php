@@ -26,7 +26,7 @@
                 ?>
                 <div class="lot-item__state <?= $should_hide_bid_form ? "visually-hidden" : "" ?>">
                     <?php
-                    $timer = get_lot_timer_data($lot['date_end']);
+                    $timer = format_lot_timer_data($lot['date_end']);
                     $timer_text = $timer['text'];
                     $timer_class = $timer['class'];
                     ?>

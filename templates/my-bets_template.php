@@ -29,7 +29,7 @@
                     $now_time = new DateTime();
                     $time_diff = $now_time->diff($end_time);
 
-                    $timer = get_lot_timer_data($date_end);
+                    $timer = format_lot_timer_data($date_end);
                     $timer_text = $timer['text'];
                     $timer_class = $timer['class'];
 

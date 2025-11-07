@@ -14,7 +14,7 @@ if (!$is_auth) {
 }
 
 $user_id = (int)$_SESSION['user_id'];
-$categories = get_categories_array($connect);
+$categories = get_categories_list($connect);
 
 // Получаем ставки пользователя с информацией о лоте
 $bets = get_bets_by_user_id($connect, $user_id);

@@ -7,8 +7,8 @@ require_once("init.php");
 /** @var string $user_name */
 /** @var int $is_auth */
 
-$categories = get_categories_array($connect);
-$lots = get_lots($connect);
+$categories = get_categories_list($connect);
+$lots = get_active_lots_list($connect);
 
 $page_content = include_template("index_template.php", ["categories" => $categories, 'lots' => $lots]);
 

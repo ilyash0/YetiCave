@@ -11,7 +11,7 @@ require_once("init.php");
 
 $errors = [];
 $new_lot = [];
-$categories = get_categories_array($connect);
+$categories = get_categories_list($connect);
 
 if (!$is_auth) {
     http_response_code(403);
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$page_content = include_template("add_template.php", ["errors" => $errors]);
+$page_content = include_template("add_template.php", ["errors" => $errors, "categories" => $categories]);
 $layout_content = include_template("layout.php",
     [
         "content" => $page_content,

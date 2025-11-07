@@ -7,7 +7,7 @@ require_once("init.php");
 /** @var string $user_name */
 /** @var int $is_auth */
 
-$categories = get_categories_array($connect);
+$categories = get_categories_list($connect);
 $lot_id_param = $_GET['id'] ?? null;
 
 if (!is_numeric($lot_id_param)) {
@@ -20,7 +20,7 @@ $lot_id = (int)$lot_id_param;
 
 try_set_winner_for_lot($connect, $lot_id);
 $lot = get_lot_by_id($connect, $lot_id);
-$bids = get_bids_for_lot($connect, $lot_id);
+$bids = get_bids_by_lot_id($connect, $lot_id);
 $bids_count = count($bids);
 
 if ($lot === null) {
