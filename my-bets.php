@@ -3,6 +3,7 @@ require_once("helpers.php");
 require_once("functions.php");
 require_once("init.php");
 
+
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */

@@ -3,6 +3,7 @@ require_once("helpers.php");
 require_once("functions.php");
 require_once("init.php");
 
+
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
@@ -12,8 +13,7 @@ const LOTS_PER_PAGE = 9;
 $categories = get_categories_array($connect);
 $search_query = trim($_GET["search"] ?? "");
 
-if (empty($search_query))
-{
+if (empty($search_query)) {
     header("Location: /");
     exit();
 }
