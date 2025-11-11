@@ -20,6 +20,21 @@ function get_error_page(int $error, array $categories, string $user_name, int $i
 }
 
 /**
+ * Проверяет, существует ли пользователь с указанным email
+ */
+function is_email_exists(mysqli $connect, string $email): bool
+{
+    $sql = "SELECT id FROM users WHERE email = ?";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$email]);
+    if (!$stmt) {
+        return false;
+    }
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    return mysqli_num_rows($result) > 0;
+}
+
+/**
  * Проверяет, что строка не пуста.
  */
 function is_filled(string $text): bool

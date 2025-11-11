@@ -9,7 +9,6 @@ require_once("init.php");
 /** @var int $is_auth */
 
 $errors = [];
-$new_user = [];
 $categories = get_categories_list($connect);
 
 if ($is_auth) {
