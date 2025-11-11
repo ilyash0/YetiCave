@@ -8,6 +8,7 @@ const HOST = "localhost";
 const USER = "kcbhnjus";
 const PASSWORD = "RJ4aFd";
 const DATABASE = "kcbhnjus_m1";
+const LOTS_PER_PAGE = 9;
 
 $connect = mysqli_connect(HOST, USER, PASSWORD, DATABASE);
 if ($connect) {

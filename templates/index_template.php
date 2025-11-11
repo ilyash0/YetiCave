@@ -25,7 +25,7 @@
         </div>
         <ul class="lots__list">
             <?php foreach ($lots as $lot): ?>
-                <?= include_template('lot-item.php', ['lot' => $lot]) ?>
+                <?= include_template('lot-item_template.php', ['lot' => $lot]) ?>
             <?php endforeach; ?>
         </ul>
     </section>

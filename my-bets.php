@@ -17,7 +17,7 @@ $user_id = (int)$_SESSION['user_id'];
 $categories = get_categories_list($connect);
 
 // Получаем ставки пользователя с информацией о лоте
-$bets = get_bets_by_user_id($connect, $user_id);
+$bets = get_bids_by_user_id($connect, $user_id);
 
 $page_content = include_template("my-bets_template.php", [
     "bets" => $bets,

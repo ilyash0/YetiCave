@@ -7,8 +7,7 @@ require_once("init.php");
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
-
-const LOTS_PER_PAGE = 9;
+/** @const int LOTS_PER_PAGE */
 
 $categories = get_categories_list($connect);
 $search_query = trim($_GET["search"] ?? "");

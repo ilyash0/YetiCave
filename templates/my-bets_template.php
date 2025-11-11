@@ -1,9 +1,5 @@
 <?php
-/** @var array $categories */
 /** @var array $bets */
-/** @var string $user_name */
-/** @var int $user_id */
-/** @var int $is_auth */
 ?>
 
 <main>

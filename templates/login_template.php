@@ -1,5 +1,4 @@
 <?php
-/** @var array $categories */
 /** @var array $errors */
 ?>
 

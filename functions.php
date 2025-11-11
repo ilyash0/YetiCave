@@ -1,18 +1,22 @@
 <?php
-/** @var false|mysqli $connect */
 date_default_timezone_set("Asia/Yekaterinburg");
 const HOURS_IN_DAY = 24;
 
-// —————————————————————————————————————————————————————————————————————————————
-// 1. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (валидация, форматирование и т.д.)
-// —————————————————————————————————————————————————————————————————————————————
 
+// UTILITY FUNCTIONS
 /**
- * Форматирует цену с пробелами-разделителями и символом рубля.
+ * Возвращает HTML-страницу ошибки.
  */
-function format_price(int $amount): string
+function get_error_page(int $error, array $categories, string $user_name, int $is_auth): string
 {
-    return number_format($amount, 0, '', ' ') . ' ₽';
+    $page_content = include_template($error . "_template.php");
+    return include_template("layout.php", [
+        "content" => $page_content,
+        "title" => "Ошибка " . $error,
+        "categories" => $categories,
+        "user_name" => $user_name,
+        "is_auth" => $is_auth
+    ]);
 }
 
 /**
@@ -101,9 +105,8 @@ function paginate_data(array $data, int $current_page, int $items_per_page): arr
     ];
 }
 
-// —————————————————————————————————————————————————————————————————————————————
-// 2. ФУНКЦИИ ДЛЯ РАБОТЫ С БАЗОЙ ДАННЫХ (SELECT, INSERT, UPDATE)
-// —————————————————————————————————————————————————————————————————————————————
+
+// DATA BASE FUNCTIONS
 /**
  * Выполняет SQL-запрос SELECT и возвращает все строки.
  * Использует подготовленные выражения (prepare).
@@ -252,6 +255,16 @@ function get_lots_by_category_id(mysqli $connect, int $category_id): array
 }
 
 /**
+ * Добавляет ставку.
+ */
+function add_bid(mysqli $connect, int $lot_id, int $user_id, int $amount): bool
+{
+    $sql = "INSERT INTO bids (lot_id, user_id, amount) VALUES (?, ?, ?)";
+    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id, $user_id, $amount]);
+    return mysqli_stmt_execute($stmt);
+}
+
+/**
  * Возвращает ставки для лота (новые сверху).
  */
 function get_bids_by_lot_id(mysqli $connect, int $lot_id): array
@@ -268,7 +281,7 @@ function get_bids_by_lot_id(mysqli $connect, int $lot_id): array
 /**
  * Возвращает ставки пользователя с информацией о лоте.
  */
-function get_bets_by_user_id(mysqli $connect, int $user_id): array
+function get_bids_by_user_id(mysqli $connect, int $user_id): array
 {
     $sql = "SELECT 
                 b.amount AS bet_amount, b.created_at AS bet_time, l.id AS lot_id,
@@ -296,20 +309,15 @@ function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
     return db_fetch_one($connect, $sql, [$lot_id]);
 }
 
-// —————————————————————————————————————————————————————————————————————————————
-// 3. ФУНКЦИИ ДЛЯ РАБОТЫ С АВТОРИЗАЦИЕЙ
-// —————————————————————————————————————————————————————————————————————————————
 
+//  AUTH FUNCTIONS
 /**
  * Аутентифицирует пользователя.
  */
 function authenticate_user(mysqli $connect, string $email, string $password): ?array
 {
     $sql = "SELECT id, email, name, password_hash FROM users WHERE email = ?";
-    $stmt = db_get_prepare_stmt($connect, $sql, [$email]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $user = mysqli_fetch_assoc($result);
+    $user = db_fetch_one($connect, $sql, [$email]);
 
     if ($user && password_verify($password, $user['password_hash'])) {
         return $user;
@@ -332,10 +340,8 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
     return mysqli_stmt_execute($stmt);
 }
 
-// —————————————————————————————————————————————————————————————————————————————
-// 4. ФУНКЦИИ ДЛЯ РАБОТЫ С ЛОТАМИ И СТАВКАМИ
-// —————————————————————————————————————————————————————————————————————————————
 
+// LOTS FUNCTIONS
 /**
  * Создаёт новый лот.
  */
@@ -380,16 +386,6 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uplo
 }
 
 /**
- * Добавляет ставку.
- */
-function add_bid(mysqli $connect, int $lot_id, int $user_id, int $amount): bool
-{
-    $sql = "INSERT INTO bids (lot_id, user_id, amount) VALUES (?, ?, ?)";
-    $stmt = db_get_prepare_stmt($connect, $sql, [$lot_id, $user_id, $amount]);
-    return mysqli_stmt_execute($stmt);
-}
-
-/**
  * Проверяет и устанавливает победителя для лота.
  */
 function try_set_winner_for_lot(mysqli $connect, int $lot_id): ?int
@@ -428,10 +424,8 @@ function check_and_set_expired_lots_winners(mysqli $connect): void
     }
 }
 
-// —————————————————————————————————————————————————————————————————————————————
-// 5. ФУНКЦИИ ДЛЯ ОТОБРАЖЕНИЯ (таймеры, время)
-// —————————————————————————————————————————————————————————————————————————————
 
+//  FORMAT FUNCTIONS
 /**
  * Формирует таймер и класс для лота.
  */
@@ -477,21 +471,10 @@ function format_relative_time(string $mysql_datetime): string
     return $bid_time->format('d.m.y в H:i');
 }
 
-// —————————————————————————————————————————————————————————————————————————————
-// 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (например, для шаблонов)
-// —————————————————————————————————————————————————————————————————————————————
-
 /**
- * Возвращает HTML-страницу ошибки.
+ * Форматирует цену с пробелами-разделителями и символом рубля.
  */
-function get_error_page(int $error, array $categories, string $user_name, int $is_auth): string
+function format_price(int $amount): string
 {
-    $page_content = include_template($error . "_template.php");
-    return include_template("layout.php", [
-        "content" => $page_content,
-        "title" => "Ошибка " . $error,
-        "categories" => $categories,
-        "user_name" => $user_name,
-        "is_auth" => $is_auth
-    ]);
+    return number_format($amount, 0, '', ' ') . ' ₽';
 }

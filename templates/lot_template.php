@@ -1,8 +1,6 @@
 <?php
-/** @var array $categories */
 /** @var array $lot */
 /** @var array $bids */
-/** @var int $bids_count */
 /** @var int $is_auth */
 ?>
 
@@ -65,8 +63,8 @@
                     </form>
                 </div>
                 <div class="history">
-                    <h3>История ставок (<span><?= $bids_count ?></span>)</h3>
-                    <?php if ($bids_count > 0): ?>
+                    <h3>История ставок (<span><?= count($bids) ?></span>)</h3>
+                    <?php if (count($bids) > 0): ?>
                         <table class="history__list">
                             <?php foreach ($bids as $bid): ?>
                                 <tr class="history__item">

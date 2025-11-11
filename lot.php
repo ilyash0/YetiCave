@@ -21,7 +21,6 @@ $lot_id = (int)$lot_id_param;
 try_set_winner_for_lot($connect, $lot_id);
 $lot = get_lot_by_id($connect, $lot_id);
 $bids = get_bids_by_lot_id($connect, $lot_id);
-$bids_count = count($bids);
 
 if ($lot === null) {
     http_response_code(404);
@@ -34,7 +33,6 @@ $page_content = include_template("lot_template.php",
     [
         'lot' => $lot,
         "bids" => $bids,
-        "bids_count" => $bids_count,
         "is_auth" => $is_auth
     ]
 );
