@@ -79,7 +79,6 @@ function is_image($file): bool
 
 /**
  * Выполняет расчёт пагинации и возвращает нужный срез данных.
-
  */
 function paginate_data(array $data, int $current_page, int $items_per_page): array
 {
@@ -218,6 +217,38 @@ function search_lots_by_query(mysqli $connect, string $query): array
             ORDER BY l.created_at DESC";
 
     return db_fetch_all($connect, $sql, [$query]);
+}
+
+/**
+ * Получает категорию по её названию
+ */
+function get_category_by_symbolic_code(mysqli $connect, string $name): ?array
+{
+    $name = trim($name);
+    $sql = "SELECT * FROM categories WHERE symbolic_code = ?";
+
+    return db_fetch_one($connect, $sql, [$name]);
+}
+
+/**
+ * Получает активные лоты по ID категории
+ */
+function get_lots_by_category_id(mysqli $connect, int $category_id): array
+{
+    $sql = "SELECT 
+                l.id, l.title, l.description, l.image_url, l.initial_price, 
+                l.date_end, c.name AS category_name,
+                COALESCE(MAX(b.amount), l.initial_price) AS current_price
+            FROM lots l
+            INNER JOIN categories c ON l.category_id = c.id
+            LEFT JOIN bids b ON l.id = b.lot_id
+            WHERE 
+                l.category_id = ?
+                AND l.date_end >= NOW()
+            GROUP BY l.id, l.created_at
+            ORDER BY l.created_at DESC";
+
+    return db_fetch_all($connect, $sql, [$category_id]);
 }
 
 /**

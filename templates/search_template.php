@@ -1,4 +1,5 @@
 <?php
+/** @var string $title */
 /** @var string $search_query */
 /** @var array $lots */
 /** @var int $current_page */
@@ -8,7 +9,7 @@
 <main>
     <div class="container">
         <section class="lots">
-            <h2>Результаты поиска по запросу «<span><?= htmlspecialchars($search_query) ?></span>»</h2>
+            <h2><?= $title ?></h2>
 
             <?php if (empty($lots)): ?>
                 <p>Ничего не найдено по вашему запросу.</p>

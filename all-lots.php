@@ -11,37 +11,35 @@ require_once("init.php");
 const LOTS_PER_PAGE = 9;
 
 $categories = get_categories_list($connect);
-$search_query = trim($_GET["search"] ?? "");
+$search_category = trim($_GET["category"] ?? "boards");
 
-if (empty($search_query))
-{
-    header("Location: /");
+$category = get_category_by_symbolic_code($connect, $search_category);
+$category_id = $category['id'];
+
+if ($search_category && !$category_id) {
+    http_response_code(404);
+    print(get_error_page(404, $categories, $user_name, $is_auth));
     exit();
 }
 
-$all_results = search_lots_by_query($connect, $search_query);
-
-$total_count = count($all_results);
-$total_pages = ceil($total_count / LOTS_PER_PAGE);
-$current_page = max(1, (int)($_GET["page"] ?? 1));
-$current_page = min($total_pages, $current_page);
-
-$offset = ($current_page - 1) * LOTS_PER_PAGE;
-$search_results = array_slice($all_results, $offset, LOTS_PER_PAGE);
+$all_results = get_lots_by_category_id($connect, $category_id);
+$pagination_data = paginate_data($all_results, (int)($_GET["page"] ?? 1), LOTS_PER_PAGE);
 
 $page_content = include_template("search_template.php", [
-    "search_query" => $search_query,
-    "search_results" => $search_results,
-    "total_pages" => $total_pages,
-    "current_page" => $current_page
+    "title" => "Все лоты в категории «" . $category['name'] . "»",
+    "search_query" => $search_category,
+    "lots" => $pagination_data['items'],
+    "total_pages" => $pagination_data['total_pages'],
+    "current_page" => $pagination_data['current_page']
 ]);
 
 $layout_content = include_template("layout.php", [
     "content" => $page_content,
-    "title" => "Результаты поиска",
+    "title" => "Все лоты в категории «" . $category['name'] . "»",
     "categories" => $categories,
     "user_name" => $user_name,
-    "is_auth" => $is_auth
+    "is_auth" => $is_auth,
+    "current_category_id" => $category_id,
 ]);
 
 print($layout_content);
