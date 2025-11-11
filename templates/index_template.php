@@ -1,6 +1,8 @@
 <?php
 /** @var array $categories */
 /** @var array $lots */
+/** @var int $current_page */
+/** @var int $total_pages */
 ?>
 
 <main class="container">
@@ -29,4 +31,9 @@
             <?php endforeach; ?>
         </ul>
     </section>
+
+    <?= include_template('pagination_template.php', [
+        'current_page' => $current_page,
+        'total_pages' => $total_pages
+    ]) ?>
 </main>

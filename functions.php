@@ -478,3 +478,12 @@ function format_price(int $amount): string
 {
     return number_format($amount, 0, '', ' ') . ' ₽';
 }
+
+/**
+ * Функция для формирования URL с параметрами страницы
+ */
+function build_pagination_params(int $page_num, array $params): string {
+    $params['page'] = $page_num;
+    $query_string = http_build_query($params);
+    return $query_string ? '?' . $query_string : '';
+}

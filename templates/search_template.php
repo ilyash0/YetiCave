@@ -24,28 +24,9 @@
             <?php endif; ?>
         </section>
 
-        <?php if ($total_pages > 1): ?>
-            <ul class="pagination-list">
-                <li class="pagination-item pagination-item-prev">
-                    <a href="?search=<?= urlencode($search_query) ?>&page=<?= max(1, $current_page - 1) ?>">Назад</a>
-                </li>
-
-                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                    <?php if ($i === $current_page): ?>
-                        <li class="pagination-item pagination__item--current"><a><?= $i ?></a></li>
-                    <?php else: ?>
-                        <li class="pagination-item">
-                            <a href="?search=<?= urlencode($search_query) ?>&page=<?= $i ?>">
-                                <?= $i ?>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                <?php endfor; ?>
-
-                <li class="pagination-item pagination-item-next">
-                    <a href="?search=<?= urlencode($search_query) ?>&page=<?= min($total_pages, $current_page + 1) ?>">Вперед</a>
-                </li>
-            </ul>
-        <?php endif; ?>
+        <?= include_template('pagination_template.php', [
+            'current_page' => $current_page,
+            'total_pages' => $total_pages
+        ]) ?>
     </div>
 </main>
