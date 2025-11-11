@@ -13,9 +13,9 @@ $categories = get_categories_list($connect);
 $search_category = trim($_GET["category"] ?? "boards");
 
 $category = get_category_by_symbolic_code($connect, $search_category);
-$category_id = $category['id'];
+$category_id = $category['id'] ?? null;
 
-if ($search_category && !$category_id) {
+if ($search_category && $category_id === null) {
     http_response_code(404);
     print(get_error_page(404, $categories, $user_name, $is_auth));
     exit();
