@@ -93,7 +93,7 @@ function is_image($file): bool
     $file_type = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
 
-    return in_array($file_type, ['image/jpeg', 'image/png', 'image/webp']);
+    return in_array($file_type, ['image/jpeg', 'image/png', 'image/jpg']);
 }
 
 /**
@@ -403,7 +403,7 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uplo
 /**
  * Проверяет и устанавливает победителя для лота.
  */
-function try_set_winner_for_lot(mysqli $connect, int $lot_id): ?int
+function set_winner_for_lot(mysqli $connect, int $lot_id): ?int
 {
     $now = date('Y-m-d');
     $lot = get_lot_by_id($connect, $lot_id);
@@ -434,7 +434,7 @@ function check_and_set_expired_lots_winners(mysqli $connect): void
 
     if ($result_check) {
         while ($row = mysqli_fetch_assoc($result_check)) {
-            try_set_winner_for_lot($connect, (int)$row['id']);
+            set_winner_for_lot($connect, (int)$row['id']);
         }
     }
 }

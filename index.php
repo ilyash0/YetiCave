@@ -8,15 +8,14 @@ require_once("init.php");
 /** @var int $is_auth */
 /** @const int LOTS_PER_PAGE */
 
+check_and_set_expired_lots_winners($connect);
 $categories = get_categories_list($connect);
 $lots = get_active_lots_list($connect);
 $pagination_data = paginate_data($lots, (int)($_GET["page"] ?? 1), LOTS_PER_PAGE);
 
 $page_content = include_template("index_template.php", [
     "categories" => $categories,
-    "lots" => $pagination_data["items"],
-    "total_pages" => $pagination_data["total_pages"],
-    "current_page" => $pagination_data["current_page"]
+    "lots" => $lots
 ]);
 
 $layout_content = include_template("layout.php",

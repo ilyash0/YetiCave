@@ -13,7 +13,7 @@
         <ul class="promo__list">
 
             <?php foreach ($categories as $category): ?>
-                <li class="promo__item promo__item--<?= htmlspecialchars($category['symbolic_code']) ?>">
+                <li class="promo__item promo__item--<?= htmlspecialchars($category["symbolic_code"]) ?>">
                     <a class="promo__link"
                        href="/all-lots.php?category=<?= urlencode($category['symbolic_code']) ?>"><?= htmlspecialchars($category['name']) ?></a>
                 </li>
@@ -31,9 +31,4 @@
             <?php endforeach; ?>
         </ul>
     </section>
-
-    <?= include_template('pagination_template.php', [
-        'current_page' => $current_page,
-        'total_pages' => $total_pages
-    ]) ?>
 </main>

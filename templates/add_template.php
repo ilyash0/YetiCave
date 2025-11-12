@@ -25,7 +25,7 @@
                     </option>
                     <?php foreach ($categories as $category): ?>
                         <option value="<?= htmlspecialchars($category['id']) ?>"
-                            <?= $selected_category == ($category['id']) ? 'selected' : '' ?>>
+                            <?= $selected_category === ($category['id']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($category['name']) ?>
                         </option>
                     <?php endforeach; ?>

@@ -3,7 +3,6 @@ require_once("helpers.php");
 require_once("functions.php");
 require_once("init.php");
 
-
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
@@ -17,30 +16,30 @@ if ($is_auth) {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $email = trim($_POST["email"]);
+    $password = $_POST["password"];
 
     if (!is_filled($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'email';
+        $errors[] = "email";
     }
 
     if (!is_filled($password)) {
-        $errors[] = 'password';
+        $errors[] = "password";
     }
 
     if (empty($errors)) {
         $user = authenticate_user($connect, $email, $password);
 
         if ($user) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['name'];
-            $_SESSION['is_auth'] = 1;
+            $_SESSION["user_id"] = $user["id"];
+            $_SESSION["user_name"] = $user["name"];
+            $_SESSION["is_auth"] = 1;
 
             header("Location: /");
             exit();
         } else {
-            $errors[] = 'auth';
+            $errors[] = "auth";
         }
     }
 }

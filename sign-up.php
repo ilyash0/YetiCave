@@ -3,7 +3,6 @@ require_once("helpers.php");
 require_once("functions.php");
 require_once("init.php");
 
-
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
@@ -18,7 +17,7 @@ if ($is_auth) {
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_user = [
         'email' => trim($_POST['email']),
         'password' => $_POST['password'],
@@ -27,7 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ];
 
     $rules = [
-        'email' => is_valid_length($new_user['email'], 1, 255) && filter_var($new_user['email'], FILTER_VALIDATE_EMAIL) && is_email_exists($connect, $new_user['email']),
+        'email' => is_valid_length($new_user['email'], 1, 255)
+            && filter_var($new_user['email'], FILTER_VALIDATE_EMAIL)
+            && !is_email_exists($connect, $new_user['email']),
         'password' => is_valid_length($new_user['password'], 8, 255),
         'name' => is_valid_length($new_user['name'], 1, 150),
         'message' => is_valid_length($new_user['message'], 1, 255)

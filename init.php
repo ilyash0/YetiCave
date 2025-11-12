@@ -13,5 +13,4 @@ const LOTS_PER_PAGE = 9;
 $connect = mysqli_connect(HOST, USER, PASSWORD, DATABASE);
 if ($connect) {
     mysqli_set_charset($connect, "utf8");
-    check_and_set_expired_lots_winners($connect);
 }

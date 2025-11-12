@@ -5,10 +5,11 @@ require_once("init.php");
 
 /** @var mysqli $connect */
 /** @var string $user_name */
+/** @var int $user_id */
 /** @var int $is_auth */
 
 $categories = get_categories_list($connect);
-$lot_id_param = $_GET['id'] ?? null;
+$lot_id_param = $_GET["id"] ?? null;
 
 if (!is_numeric($lot_id_param)) {
     http_response_code(404);
@@ -18,9 +19,15 @@ if (!is_numeric($lot_id_param)) {
 
 $lot_id = (int)$lot_id_param;
 
-try_set_winner_for_lot($connect, $lot_id);
+set_winner_for_lot($connect, $lot_id);
 $lot = get_lot_by_id($connect, $lot_id);
 $bids = get_bids_by_lot_id($connect, $lot_id);
+$last_bid = get_last_bid_for_lot($connect, $lot_id);
+$now = date("Y-m-d");
+$should_hide_bid_form = !$is_auth
+    || $lot["date_end"] < $now
+    || (int)$lot["author_id"] === $user_id
+    || $last_bid && (int)$last_bid["user_id"] === $user_id;
 
 if ($lot === null) {
     http_response_code(404);
@@ -28,12 +35,13 @@ if ($lot === null) {
     exit();
 }
 
-$title = $lot['title'];
+$title = $lot["title"];
 $page_content = include_template("lot_template.php",
     [
-        'lot' => $lot,
+        "lot" => $lot,
         "bids" => $bids,
-        "is_auth" => $is_auth
+        "is_auth" => $is_auth,
+        "should_hide_bid_form" => $should_hide_bid_form
     ]
 );
 
