@@ -64,7 +64,7 @@ function is_valid_price(string $value): bool
  */
 function is_valid_date(string $date): bool
 {
-    $format = 'Y-m-d';
+    $format = "Y-m-d";
     $dateTimeObj = date_create_from_format($format, $date);
 
     if (!$dateTimeObj || $dateTimeObj->format($format) !== $date) {
@@ -85,15 +85,15 @@ function is_valid_date(string $date): bool
  */
 function is_image($file): bool
 {
-    if (!is_array($file) || empty($file['tmp_name'])) {
+    if (!is_array($file) || empty($file["tmp_name"])) {
         return false;
     }
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $file_type = finfo_file($finfo, $file['tmp_name']);
+    $file_type = finfo_file($finfo, $file["tmp_name"]);
     finfo_close($finfo);
 
-    return in_array($file_type, ['image/jpeg', 'image/png', 'image/jpg']);
+    return in_array($file_type, ["image/jpeg", "image/png", "image/jpg"]);
 }
 
 /**
@@ -114,9 +114,9 @@ function paginate_data(array $data, int $current_page, int $items_per_page): arr
     $items = array_slice($data, $offset, $items_per_page);
 
     return [
-        'items' => $items,
-        'total_pages' => $total_pages,
-        'current_page' => $current_page
+        "items" => $items,
+        "total_pages" => $total_pages,
+        "current_page" => $current_page
     ];
 }
 
@@ -219,7 +219,7 @@ function search_lots_by_query(mysqli $connect, string $query): array
         return [];
     }
 
-    $query = mb_strtolower($query, 'UTF-8');
+    $query = mb_strtolower($query, "UTF-8");
 
     $sql = "SELECT 
                 l.id, l.title, l.description, l.image_url, l.initial_price, 
@@ -334,7 +334,7 @@ function authenticate_user(mysqli $connect, string $email, string $password): ?a
     $sql = "SELECT id, email, name, password_hash FROM users WHERE email = ?";
     $user = db_fetch_one($connect, $sql, [$email]);
 
-    if ($user && password_verify($password, $user['password_hash'])) {
+    if ($user && password_verify($password, $user["password_hash"])) {
         return $user;
     }
 
@@ -360,17 +360,17 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
 /**
  * Создаёт новый лот.
  */
-function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uploads/'): ?int
+function create_lot(mysqli $connect, array $lot_data, string $upload_dir = "uploads/"): ?int
 {
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0755, true);
     }
 
-    $file_extension = pathinfo($lot_data['uploaded_file']['name'], PATHINFO_EXTENSION);
-    $filename = uniqid('lot_', true) . '.' . strtolower($file_extension);
+    $file_extension = pathinfo($lot_data["uploaded_file"]["name"], PATHINFO_EXTENSION);
+    $filename = uniqid("lot_", true) . "." . strtolower($file_extension);
     $filepath = $upload_dir . $filename;
 
-    if (!move_uploaded_file($lot_data['uploaded_file']['tmp_name'], $filepath)) {
+    if (!move_uploaded_file($lot_data["uploaded_file"]["tmp_name"], $filepath)) {
         return null;
     }
 
@@ -379,14 +379,14 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uplo
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = db_get_prepare_stmt($connect, $sql, [
-        $lot_data['title'],
-        $lot_data['description'],
+        $lot_data["title"],
+        $lot_data["description"],
         $filepath,
-        $lot_data['initial_price'],
-        $lot_data['bid_step'],
-        $lot_data['date_end'],
-        $lot_data['author_id'],
-        $lot_data['category_id']
+        $lot_data["initial_price"],
+        $lot_data["bid_step"],
+        $lot_data["date_end"],
+        $lot_data["author_id"],
+        $lot_data["category_id"]
     ]);
 
     if (mysqli_stmt_execute($stmt)) {
@@ -405,10 +405,10 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = 'uplo
  */
 function set_winner_for_lot(mysqli $connect, int $lot_id): ?int
 {
-    $now = date('Y-m-d');
+    $now = date("Y-m-d");
     $lot = get_lot_by_id($connect, $lot_id);
 
-    if (!$lot || $lot['date_end'] >= $now || $lot['winner_id'] !== null) {
+    if (!$lot || $lot["date_end"] >= $now || $lot["winner_id"] !== null) {
         return null;
     }
 
@@ -417,7 +417,7 @@ function set_winner_for_lot(mysqli $connect, int $lot_id): ?int
         return null;
     }
 
-    $winner_id = (int)$last_bid['user_id'];
+    $winner_id = (int)$last_bid["user_id"];
     $sql = "UPDATE lots SET winner_id = ? WHERE id = ?";
     $stmt = db_get_prepare_stmt($connect, $sql, [$winner_id, $lot_id]);
 
@@ -434,7 +434,7 @@ function check_and_set_expired_lots_winners(mysqli $connect): void
 
     if ($result_check) {
         while ($row = mysqli_fetch_assoc($result_check)) {
-            set_winner_for_lot($connect, (int)$row['id']);
+            set_winner_for_lot($connect, (int)$row["id"]);
         }
     }
 }
@@ -448,10 +448,10 @@ function format_lot_timer_data(string $date_end): array
 {
     $end_time = new DateTime($date_end);
     $now_time = new DateTime();
-    $now = date('Y-m-d');
+    $now = date("Y-m-d");
 
     if ($date_end < $now) {
-        return ['text' => 'Торги окончены', 'class' => 'timer timer--end'];
+        return ["text" => "Торги окончены", "class" => "timer timer--end"];
     }
 
     $time_diff = $now_time->diff($end_time);
@@ -459,9 +459,9 @@ function format_lot_timer_data(string $date_end): array
     $minutes = $time_diff->i;
 
     $timer_text = str_pad($hours, 2, "0", STR_PAD_LEFT) . ":" . str_pad($minutes, 2, "0", STR_PAD_LEFT);
-    $timer_class = $time_diff->days === 0 && $hours < 2 ? 'timer timer--finishing' : 'timer';
+    $timer_class = $time_diff->days === 0 && $hours < 2 ? "timer timer--finishing" : "timer";
 
-    return ['text' => $timer_text, 'class' => $timer_class];
+    return ["text" => $timer_text, "class" => $timer_class];
 }
 
 /**
@@ -475,15 +475,15 @@ function format_relative_time(string $mysql_datetime): string
 
     if ($interval->days === 0) {
         if ($interval->h > 0) {
-            return $interval->h . ' ч. назад';
+            return $interval->h . " ч. назад";
         }
         if ($interval->i > 0) {
-            return $interval->i . ' мин. назад';
+            return $interval->i . " мин. назад";
         }
-        return 'только что';
+        return "только что";
     }
 
-    return $bid_time->format('d.m.y в H:i');
+    return $bid_time->format("d.m.y в H:i");
 }
 
 /**
@@ -491,14 +491,14 @@ function format_relative_time(string $mysql_datetime): string
  */
 function format_price(int $amount): string
 {
-    return number_format($amount, 0, '', ' ') . ' ₽';
+    return number_format($amount, 0, '', " ") . " ₽";
 }
 
 /**
  * Функция для формирования URL с параметрами страницы
  */
 function build_pagination_params(int $page_num, array $params): string {
-    $params['page'] = $page_num;
+    $params["page"] = $page_num;
     $query_string = http_build_query($params);
-    return $query_string ? '?' . $query_string : '';
+    return $query_string ? "?" . $query_string : '';
 }

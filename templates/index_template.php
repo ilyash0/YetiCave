@@ -15,7 +15,7 @@
             <?php foreach ($categories as $category): ?>
                 <li class="promo__item promo__item--<?= htmlspecialchars($category["symbolic_code"]) ?>">
                     <a class="promo__link"
-                       href="/all-lots.php?category=<?= urlencode($category['symbolic_code']) ?>"><?= htmlspecialchars($category['name']) ?></a>
+                       href="/all-lots.php?category=<?= urlencode($category["symbolic_code"]) ?>"><?= htmlspecialchars($category["name"]) ?></a>
                 </li>
             <?php endforeach; ?>
 
@@ -27,7 +27,7 @@
         </div>
         <ul class="lots__list">
             <?php foreach ($lots as $lot): ?>
-                <?= include_template('lot-item_template.php', ['lot' => $lot]) ?>
+                <?= include_template("lot-item_template.php", ["lot" => $lot]) ?>
             <?php endforeach; ?>
         </ul>
     </section>

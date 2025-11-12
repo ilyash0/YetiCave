@@ -18,15 +18,15 @@
             <?php else: ?>
                 <ul class="lots__list">
                     <?php foreach ($lots as $lot): ?>
-                        <?= include_template('lot-item_template.php', ['lot' => $lot]) ?>
+                        <?= include_template("lot-item_template.php", ["lot" => $lot]) ?>
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
         </section>
 
-        <?= include_template('pagination_template.php', [
-            'current_page' => $current_page,
-            'total_pages' => $total_pages
+        <?= include_template("pagination_template.php", [
+            "current_page" => $current_page,
+            "total_pages" => $total_pages
         ]) ?>
     </div>
 </main>

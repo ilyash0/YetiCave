@@ -6,7 +6,7 @@
 <?php if ($total_pages > 1): ?>
     <?php
     $params = $_GET;
-    unset($params['page']);
+    unset($params["page"]);
     ?>
 
     <ul class="pagination-list">

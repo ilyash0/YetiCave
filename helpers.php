@@ -1,20 +1,20 @@
 <?php
 /**
- * Проверяет переданную дату на соответствие формату 'ГГГГ-ММ-ДД'
+ * Проверяет переданную дату на соответствие формату "ГГГГ-ММ-ДД"
  *
  * Примеры использования:
- * is_date_valid('2019-01-01'); // true
- * is_date_valid('2016-02-29'); // true
- * is_date_valid('2019-04-31'); // false
- * is_date_valid('10.10.2010'); // false
- * is_date_valid('10/10/2010'); // false
+ * is_date_valid("2019-01-01"); // true
+ * is_date_valid("2016-02-29"); // true
+ * is_date_valid("2019-04-31"); // false
+ * is_date_valid("10.10.2010"); // false
+ * is_date_valid("10/10/2010"); // false
  *
  * @param string $date Дата в виде строки
  *
- * @return bool true при совпадении с форматом 'ГГГГ-ММ-ДД', иначе false
+ * @return bool true при совпадении с форматом "ГГГГ-ММ-ДД", иначе false
  */
 function is_date_valid(string $date) : bool {
-    $format_to_check = 'Y-m-d';
+    $format_to_check = "Y-m-d";
     $dateTimeObj = date_create_from_format($format_to_check, $date);
 
     if ($dateTimeObj === false) {
@@ -40,7 +40,7 @@ function db_get_prepare_stmt($link, $sql, $data = []) {
     $stmt = mysqli_prepare($link, $sql);
 
     if ($stmt === false) {
-        $errorMsg = 'Не удалось инициализировать подготовленное выражение: ' . mysqli_error($link);
+        $errorMsg = "Не удалось инициализировать подготовленное выражение: " . mysqli_error($link);
         die($errorMsg);
     }
 
@@ -49,16 +49,16 @@ function db_get_prepare_stmt($link, $sql, $data = []) {
         $stmt_data = [];
 
         foreach ($data as $value) {
-            $type = 's';
+            $type = "s";
 
             if (is_int($value)) {
-                $type = 'i';
+                $type = "i";
             }
             else if (is_string($value)) {
-                $type = 's';
+                $type = "s";
             }
             else if (is_double($value)) {
-                $type = 'd';
+                $type = "d";
             }
 
             if ($type) {
@@ -69,11 +69,11 @@ function db_get_prepare_stmt($link, $sql, $data = []) {
 
         $values = array_merge([$stmt, $types], $stmt_data);
 
-        $func = 'mysqli_stmt_bind_param';
+        $func = "mysqli_stmt_bind_param";
         $func(...$values);
 
         if (mysqli_errno($link) > 0) {
-            $errorMsg = 'Не удалось связать подготовленное выражение с параметрами: ' . mysqli_error($link);
+            $errorMsg = "Не удалось связать подготовленное выражение с параметрами: " . mysqli_error($link);
             die($errorMsg);
         }
     }
@@ -90,9 +90,9 @@ function db_get_prepare_stmt($link, $sql, $data = []) {
  * echo "Я поставил таймер на {$remaining_minutes} " .
  *     get_noun_plural_form(
  *         $remaining_minutes,
- *         'минута',
- *         'минуты',
- *         'минут'
+ *         "минута",
+ *         "минуты",
+ *         "минут"
  *     );
  * Результат: "Я поставил таймер на 5 минут"
  *
@@ -134,7 +134,7 @@ function get_noun_plural_form (int $number, string $one, string $two, string $ma
  * @return string Итоговый HTML
  */
 function include_template($name, array $data = []) {
-    $name = 'templates/' . $name;
+    $name = "templates/" . $name;
     $result = '';
 
     if (!is_readable($name)) {

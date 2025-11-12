@@ -12,7 +12,7 @@ if (!$is_auth) {
     exit();
 }
 
-$user_id = (int)$_SESSION['user_id'];
+$user_id = (int)$_SESSION["user_id"];
 $categories = get_categories_list($connect);
 
 // Получаем ставки пользователя с информацией о лоте

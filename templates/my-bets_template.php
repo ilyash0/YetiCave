@@ -11,35 +11,35 @@
             <table class="rates__list">
                 <?php foreach ($bets as $bet): ?>
                     <?php
-                    $image_url = htmlspecialchars($bet['image_url']);
-                    $title_safe = htmlspecialchars($bet['lot_title']);
-                    $category_name = htmlspecialchars($bet['category_name']);
-                    $bet_amount = (int)$bet['bet_amount'];
-                    $date_end = $bet['date_end'];
-                    $winner_id = (int)$bet['winner_id'];
-                    $lot_id = (int)$bet['lot_id'];
-                    $contact_info = htmlspecialchars($bet['contact_information'] ?? 'Нет данных');
+                    $image_url = htmlspecialchars($bet["image_url"]);
+                    $title_safe = htmlspecialchars($bet["lot_title"]);
+                    $category_name = htmlspecialchars($bet["category_name"]);
+                    $bet_amount = (int)$bet["bet_amount"];
+                    $date_end = $bet["date_end"];
+                    $winner_id = (int)$bet["winner_id"];
+                    $lot_id = (int)$bet["lot_id"];
+                    $contact_info = htmlspecialchars($bet["contact_information"] ?? "Нет данных");
 
-                    $now = date('Y-m-d');
+                    $now = date("Y-m-d");
                     $end_time = new DateTime($date_end);
                     $now_time = new DateTime();
                     $time_diff = $now_time->diff($end_time);
 
                     $timer = format_lot_timer_data($date_end);
-                    $timer_text = $timer['text'];
-                    $timer_class = $timer['class'];
+                    $timer_text = $timer["text"];
+                    $timer_class = $timer["class"];
 
                     $status_class = '';
                     if ($date_end < $now) {
-                        if ($winner_id && $winner_id === (int)$_SESSION['user_id']) {
-                            $status_class = 'rates__item--win';
-                            $timer_text = 'Ставка выиграла';
-                            $timer_class = 'timer timer--win';
+                        if ($winner_id && $winner_id === (int)$_SESSION["user_id"]) {
+                            $status_class = "rates__item--win";
+                            $timer_text = "Ставка выиграла";
+                            $timer_class = "timer timer--win";
                         } else {
-                            $status_class = 'rates__item--end';
+                            $status_class = "rates__item--end";
                         }
                     } else {
-                        $status_class = 'rates__item--active';
+                        $status_class = "rates__item--active";
                     }
                     ?>
                     <tr class="rates__item <?= $status_class ?>">
@@ -64,7 +64,7 @@
                             <?= htmlspecialchars(format_price($bet_amount)) ?>
                         </td>
                         <td class="rates__time">
-                            <?= format_relative_time($bet['bet_time']) ?>
+                            <?= format_relative_time($bet["bet_time"]) ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

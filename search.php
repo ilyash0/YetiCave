@@ -22,9 +22,9 @@ $pagination_data = paginate_data($all_results, (int)($_GET["page"] ?? 1), LOTS_P
 $page_content = include_template("search_template.php", [
     "title" => "Результаты поиска по запросу «" . $search_query . "»",
     "search_query" => $search_query,
-    "lots" => $pagination_data['items'],
-    "total_pages" => $pagination_data['total_pages'],
-    "current_page" => $pagination_data['current_page']
+    "lots" => $pagination_data["items"],
+    "total_pages" => $pagination_data["total_pages"],
+    "current_page" => $pagination_data["current_page"]
 ]);
 
 $layout_content = include_template("layout.php", [
