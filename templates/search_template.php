@@ -9,7 +9,7 @@
 <main>
     <div class="container">
         <section class="lots">
-            <h2><?= $title ?></h2>
+            <h2><?= htmlspecialchars($title) ?></h2>
 
             <?php if (empty($lots)): ?>
                 <p>Ничего не найдено по вашему запросу.</p>
