@@ -10,7 +10,6 @@ require_once("init.php");
 /** @var int $is_auth */
 
 
-
 $errors = [];
 $new_user = [];
 $categories = get_categories_list($connect);
@@ -26,7 +25,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "email" => trim($_POST["email"]),
         "password" => $_POST["password"],
         "name" => trim($_POST["name"]),
-        "message" => trim($_POST["message"])
+        "message" => trim($_POST["message"]),
+        "recaptcha_token" => $_POST['g-recaptcha-response'] ?? ''
     ];
 
     $errors = validate_registration($connect, $new_user, $strings);
