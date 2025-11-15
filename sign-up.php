@@ -1,11 +1,15 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
+require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
+/** @var array $strings */
 /** @var string $user_name */
 /** @var int $is_auth */
+
+
 
 $errors = [];
 $new_user = [];
@@ -25,20 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "message" => trim($_POST["message"])
     ];
 
-    $rules = [
-        "email" => is_valid_length($new_user["email"], 1, 255)
-            && filter_var($new_user["email"], FILTER_VALIDATE_EMAIL)
-            && !is_email_exists($connect, $new_user["email"]),
-        "password" => is_valid_length($new_user["password"], 8, 255),
-        "name" => is_valid_length($new_user["name"], 1, 150),
-        "message" => is_valid_length($new_user["message"], 1, 255)
-    ];
-
-    foreach ($rules as $key => $value) {
-        if (!$value) {
-            $errors[] = $key;
-        }
-    }
+    $errors = validate_registration($connect, $new_user, $strings);
 
     if (empty($errors)) {
         register_user($connect, $new_user["name"], $new_user["email"], $new_user["password"], $new_user["message"]);

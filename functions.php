@@ -1,6 +1,11 @@
 <?php
 date_default_timezone_set("Asia/Yekaterinburg");
 const HOURS_IN_DAY = 24;
+const MAX_EMAIL_LEN = 255;
+const MAX_NAME_LEN = 150;
+const MAX_MESSAGE_LEN = 255;
+const MIN_PASSWORD_LEN = 8;
+const MAX_PASSWORD_LEN = 255;
 
 
 // UTILITY FUNCTIONS
@@ -94,6 +99,76 @@ function is_image($file): bool
     finfo_close($finfo);
 
     return in_array($file_type, ["image/jpeg", "image/png", "image/jpg"]);
+}
+
+/**
+ * Проверяет, содержит ли строка заглавные буквы
+ */
+function has_uppercase(string $string): bool
+{
+    return (bool)preg_match("/[A-ZА-ЯЁ]/u", $string);
+}
+
+/**
+ * Проверяет, содержит ли строка строчные буквы
+ */
+function has_lowercase(string $string): bool
+{
+    return (bool)preg_match("/[a-zа-яё]/u", $string);
+}
+
+/**
+ * Проверяет, содержит ли строка цифры
+ */
+function has_digit(string $string): bool
+{
+    return (bool)preg_match("/[0-9]/", $string);
+}
+
+/**
+ * Проверяет, содержит ли строка специальные символы
+ */
+function has_special_chars(string $string): bool
+{
+    return (bool)preg_match("/[^a-zа-яё0-9\s]/iu", $string);
+}
+
+/**
+ * Проверяет, является ли строка одним из часто используемых ненадежных паролей
+ */
+function is_common_password(string $string): bool
+{
+    $common_passwords = [
+        "123456", "password", "12345678", "qwerty", "12345", "123456789",
+        "1234", "111111", "1234567", "dragon", "123123", "baseball",
+        "admin", "letmein", "welcome", "monkey", "login", "abc123",
+        "starwars", "1234qwer", "1q2w3e4r", "1qaz2wsx", "trustno1",
+        "привет", "qwerty123", "password1", "iloveyou", "1234567890",
+        "asdfgh", "123321", "123qwe", "q1w2e3r4", "zaq12wsx",
+        "qwertyuiop", "1q2w3e4r5t", "123456a", "123456789a", "987654321",
+        "пароль", "йцукен"
+    ];
+
+    return in_array(mb_strtolower($string, "UTF-8"), $common_passwords);
+}
+
+/**
+ * Группирует ошибки валидации по полям формы
+ */
+function group_errors_by_field(array $errors, array $fields): array
+{
+    $field_errors = array_fill_keys($fields, []);
+
+    foreach ($errors as $error_key => $error_message) {
+        foreach ($fields as $field) {
+            if (str_starts_with($error_key, $field . '_')) {
+                $field_errors[$field][] = $error_message;
+                break;
+            }
+        }
+    }
+
+    return $field_errors;
 }
 
 /**
@@ -327,6 +402,63 @@ function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
 
 //  AUTH FUNCTIONS
 /**
+ * Основная функция валидации — возвращает массив ошибок по полям
+ */
+function validate_registration(mysqli $conn, array $input, array $strings): array
+{
+    $errors = [];
+
+    $email = mb_strtolower(trim($input['email'] ?? ''));
+    $password = $input['password'] ?? '';
+    $name = trim($input['name'] ?? '');
+    $message = trim($input['message'] ?? '');
+
+    if (!is_filled($email)) {
+        $errors['email'] = $strings['email_empty'];
+    } elseif (!is_valid_length($email, 0, MAX_EMAIL_LEN)) {
+        $errors['email'] = $strings['email_long'];
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = $strings['email_invalid'];
+    } elseif (is_email_exists($conn, $email)) {
+        $errors['email'] = $strings['email_exists'];
+    }
+
+    if (!is_valid_length($password, MIN_PASSWORD_LEN, MAX_PASSWORD_LEN)) {
+        $errors['password_empty'] = $strings['password_empty'];
+    } else {
+        if (!has_uppercase($password)) {
+            $errors['password_no_uppercase'] = $strings['password_no_uppercase'];
+        }
+        if (!has_lowercase($password)) {
+            $errors['password_no_lowercase'] = $strings['password_no_lowercase'];
+        }
+        if (!has_digit($password)) {
+            $errors['password_no_digits'] = $strings['password_no_digits'];
+        }
+        if (!has_special_chars($password)) {
+            $errors['password_no_special_chars'] = $strings['password_no_special_chars'];
+        }
+        if (is_common_password($password)) {
+            $errors['password_common'] = $strings['password_common'];
+        }
+    }
+
+    if (!is_filled($name)) {
+        $errors['name'] = $strings['name_empty'];
+    } elseif (!is_valid_length($name, 0, MAX_NAME_LEN)) {
+        $errors['name'] = $strings['name_long'];
+    }
+
+    if (!is_filled($message )) {
+        $errors['message'] = $strings['message_empty'];
+    } elseif (!is_valid_length($message, 0, MAX_MESSAGE_LEN)) {
+        $errors['message'] = $strings['message_long'];
+    }
+
+    return $errors;
+}
+
+/**
  * Аутентифицирует пользователя.
  */
 function authenticate_user(mysqli $connect, string $email, string $password): ?array
@@ -491,14 +623,15 @@ function format_relative_time(string $mysql_datetime): string
  */
 function format_price(int $amount): string
 {
-    return number_format($amount, 0, '', " ") . " ₽";
+    return number_format($amount, 0, "", " ") . " ₽";
 }
 
 /**
  * Функция для формирования URL с параметрами страницы
  */
-function build_pagination_params(int $page_num, array $params): string {
+function build_pagination_params(int $page_num, array $params): string
+{
     $params["page"] = $page_num;
     $query_string = http_build_query($params);
-    return $query_string ? "?" . $query_string : '';
+    return $query_string ? "?" . $query_string : "";
 }
