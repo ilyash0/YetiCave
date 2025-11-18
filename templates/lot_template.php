@@ -3,6 +3,8 @@
 /** @var array $bids */
 /** @var int $is_auth */
 /** @var bool $should_hide_bid_form */
+/** @var array $bid_errors */
+/** @var string $bid_amount */
 ?>
 
 <main>
@@ -40,19 +42,20 @@
                         </div>
                     </div>
 
-                    <?php
-                    $bid_errors = $_SESSION["bid_errors"] ?? [];
-                    unset($_SESSION["bid_errors"]);
-                    ?>
-
-                    <form class="lot-item__form" action="/bid.php" method="post" autocomplete="off">
+                    <form class="lot-item__form"
+                          action="/lot.php?id=<?= (int)$lot['id'] ?>"
+                          method="post"
+                          autocomplete="off">
                         <input type="hidden" name="lot_id" value="<?= (int)$lot["id"] ?>">
-                        <p class="lot-item__form-item form__item form__item--invalid">
+                        <p class="lot-item__form-item form__item <?= !empty($bid_errors) ? 'form__item--invalid' : '' ?>">
                             <label for="cost">Ваша ставка</label>
                             <input id="cost" type="text" name="cost"
                                    placeholder="<?= (int)($lot["current_price"] + $lot["bid_step"]) ?>">
-                            <?php if (!empty($bid_errors["error"])): ?>
-                                <span class="form__error"><?= htmlspecialchars($bid_errors["error"]) ?></span>
+                            <?php if (isset($bid_errors['bid'])): ?>
+                                <span class="form__error"><?= htmlspecialchars($bid_errors['bid']) ?></span>
+                            <?php endif; ?>
+                            <?php if (isset($bid_errors['common'])): ?>
+                                <span class="form__error"><?= htmlspecialchars($bid_errors['common']) ?></span>
                             <?php endif; ?>
                         </p>
                         <button type="submit" class="button">Сделать ставку</button>
@@ -66,7 +69,7 @@
                                 <tr class="history__item">
                                     <td class="history__name"><?= htmlspecialchars($bid["bidder_name"]) ?></td>
                                     <td class="history__price"><?= htmlspecialchars(format_price($bid["amount"])) ?></td>
-                                    <td class="history__time"><?= format_relative_time($bid["created_at"]) ?> </td>
+                                    <td class="history__time"><?= format_relative_time($bid["created_at"]) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </table>

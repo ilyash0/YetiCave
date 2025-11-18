@@ -646,6 +646,42 @@ function validate_lot_creation(array $data, array $strings, array $categories): 
 }
 
 /**
+ * Валидация формы добавления ставки
+ */
+function validate_bid(array $data, array $lot, mysqli $connect, int $user_id, array $strings): array
+{
+    $errors = [];
+    $bid_amount_input = trim($data['cost'] ?? '');
+    $bid_amount = (int)$bid_amount_input;
+    $now = date("Y-m-d");
+    $last_bid = get_last_bid_for_lot($connect, $lot["id"]);
+
+    if ($lot['date_end'] < $now) {
+        $errors['bid'] = $strings['bid_lot_ended'];
+    } elseif ((int)$lot['author_id'] === $user_id) {
+        $errors['bid'] = $strings['bid_own_lot'];
+    } elseif ($last_bid && (int)$last_bid['user_id'] === $user_id) {
+        $errors['bid'] = $strings['bid_same_user'];
+    } elseif (empty($bid_amount_input)) {
+        $errors['bid'] = $strings['bid_empty'];
+    } elseif (!is_numeric($bid_amount_input) || $bid_amount_input != $bid_amount || $bid_amount <= 0) {
+        $errors['bid'] = $strings['bid_invalid'];
+    } else {
+        $current_price = (int)$lot['current_price'];
+        $bid_step = (int)$lot['bid_step'];
+        $min_bid = $current_price + $bid_step;
+
+        if ($bid_amount < $min_bid) {
+            $errors['bid'] = sprintf($strings['bid_low'], format_price($min_bid));
+        } elseif (($bid_amount - $current_price) % $bid_step !== 0) {
+            $errors['bid'] = sprintf($strings['bid_not_multiple'], $bid_step);
+        }
+    }
+
+    return $errors;
+}
+
+/**
  * Создаёт новый лот.
  */
 function create_lot(mysqli $connect, array $lot_data, string $upload_dir = "uploads/"): ?int
