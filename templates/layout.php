@@ -56,7 +56,7 @@
             </nav>
         </div>
     </header>
-    <nav class="nav <?= basename($_SERVER["SCRIPT_NAME"]) === "index.php" ? " visually-hidden" : '' ?>">
+    <nav class="nav <?= basename($_SERVER["SCRIPT_NAME"]) === "index.php" ? "visually-hidden" : '' ?>">
         <ul class="nav__list container">
             <?php foreach ($categories as $category): ?>
                <li class="nav__item <?= $current_category_id === (int)$category["id"] ? "nav__item--current" : ''?>">

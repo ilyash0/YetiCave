@@ -424,8 +424,12 @@ function validate_registration(mysqli $conn, array $input, array $strings): arra
         $errors['email'] = $strings['email_exists'];
     }
 
-    if (!is_valid_length($password, MIN_PASSWORD_LEN, MAX_PASSWORD_LEN)) {
+    if (!is_filled($email)) {
         $errors['password_empty'] = $strings['password_empty'];
+    } elseif (strlen($password) < MIN_PASSWORD_LEN) {
+        $errors['password_short'] = $strings['password_short'];
+    } elseif (strlen($password) > MAX_PASSWORD_LEN) {
+        $errors['password_long'] = $strings['password_long'];
     } else {
         if (!has_uppercase($password)) {
             $errors['password_no_uppercase'] = $strings['password_no_uppercase'];
@@ -456,23 +460,70 @@ function validate_registration(mysqli $conn, array $input, array $strings): arra
         $errors['message'] = $strings['message_long'];
     }
 
-    $rec = verify_recaptcha_v3(RECAPTCHA_SECRET, $recaptcha_token);
-    $recaptcha_ok = false;
-
-    if ($rec && !empty($rec['success']) && isset($rec['score']) && isset($rec['action'])) {
-        if ($rec['action'] === 'signup' && $rec['score'] >= RECAPTCHA_MIN_SCORE) {
-            $recaptcha_ok = true;
-        }
-    }
-
-    if (!$recaptcha_ok) {
+    if (!validate_recaptcha($recaptcha_token, "signup"))
+    {
         $errors['recaptcha'] = $strings['recaptcha_failed'];
     }
 
     return $errors;
 }
 
-function verify_recaptcha_v3(string $secret, string $token, ?string $remote_ip = null): ?array {
+/**
+ * Основная функция валидации — возвращает массив ошибок по полям
+ */
+function validate_authentication(array $input, array $strings): array
+{
+    $errors = [];
+    $email = trim($input['email'] ?? '');
+    $password = $input['password'] ?? '';
+    $recaptcha_token = $input['recaptcha_token'] ?? '';
+
+    if (!is_filled($email)) {
+        $errors['email'] = $strings['email_empty'];
+    }
+
+    if (empty($password)) {
+        $errors['password'] = $strings['password_empty'];
+    }
+
+    if (!validate_recaptcha($recaptcha_token, "login"))
+    {
+        $errors['recaptcha'] = $strings['recaptcha_failed'];
+    }
+
+    return $errors;
+}
+
+/**
+ * @param mixed $recaptcha_token
+ * @param string $expected_action
+ * @return bool
+ */
+function validate_recaptcha(string $recaptcha_token, string $expected_action): bool
+{
+    if (empty($recaptcha_token)) {
+        return false;
+    }
+
+    $rec = verify_recaptcha_v3(RECAPTCHA_SECRET, $recaptcha_token);
+
+    if (!$rec || empty($rec['success'])) {
+        return false;
+    }
+
+    if (isset($rec['action']) && $rec['action'] !== $expected_action) {
+        return false;
+    }
+
+    if (isset($rec['score']) && $rec['score'] < RECAPTCHA_MIN_SCORE) {
+        return false;
+    }
+
+    return true;
+}
+
+function verify_recaptcha_v3(string $secret, string $token, ?string $remote_ip = null): ?array
+{
     $url = 'https://www.google.com/recaptcha/api/siteverify';
     $data = [
         'secret' => $secret,
@@ -484,14 +535,14 @@ function verify_recaptcha_v3(string $secret, string $token, ?string $remote_ip =
 
     $options = [
         'http' => [
-            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-            'method'  => 'POST',
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
             'content' => http_build_query($data),
             'timeout' => 5
         ]
     ];
 
-    $context  = stream_context_create($options);
+    $context = stream_context_create($options);
     $result = @file_get_contents($url, false, $context);
     if ($result === false) {
         return null;

@@ -1,9 +1,11 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
+require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
+/** @var array $strings */
 /** @var string $user_name */
 /** @var int $is_auth */
 
@@ -17,19 +19,16 @@ if ($is_auth) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
+    $login_data = [
+        "email" => trim($_POST["email"]),
+        "password" => $_POST["password"],
+        "recaptcha_token" => $_POST['g-recaptcha-response'] ?? ''
+    ];
 
-    if (!is_filled($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "email";
-    }
-
-    if (!is_filled($password)) {
-        $errors[] = "password";
-    }
+    $errors = validate_authentication($login_data, $strings);
 
     if (empty($errors)) {
-        $user = authenticate_user($connect, $email, $password);
+        $user = authenticate_user($connect, $login_data["email"], $login_data["password"]);
 
         if ($user) {
             $_SESSION["user_id"] = $user["id"];
@@ -39,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             header("Location: /");
             exit();
         } else {
-            $errors[] = "auth";
+            $errors["auth"] = $strings["auth_failed"];
         }
     }
 }

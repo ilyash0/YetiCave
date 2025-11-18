@@ -75,7 +75,7 @@ $field_errors = group_errors_by_field($errors, $fields);
                     })
                     .catch(function (err) {
                         console.error('reCaptcha error', err);
-                        form.submit();
+                        alert('Ошибка проверки безопасности. Пожалуйста, попробуйте еще раз.');
                     });
             });
         }, {once: true});
