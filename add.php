@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "author_id" => $user_id,
     ];
 
-    $errors = validate_lot_creation($new_lot, $strings, $categories, $user_id);
+    $errors = validate_lot_creation($new_lot, $strings, $categories);
 
     if (empty($errors)) {
         $lot_id = create_lot($connect, $new_lot, "uploads/");

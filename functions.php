@@ -596,7 +596,7 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
 /**
  * Валидация формы добавления лота
  */
-function validate_lot_creation(array $data, array $strings, array $categories, int $user_id): array
+function validate_lot_creation(array $data, array $strings, array $categories): array
 {
     $errors = [];
 
