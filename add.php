@@ -23,7 +23,7 @@ if (!$is_auth) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $new_lot = [
         "title" => trim($_POST["title"]),
-        "category_id" => $_POST["category_id"] ?? 0,
+        "category_id" => $_POST["category_id"] ?? -1,
         "description" => trim($_POST["description"]),
         "initial_price" => $_POST["initial_price"],
         "bid_step" => $_POST["bid_step"],
