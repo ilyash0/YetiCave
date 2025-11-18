@@ -1,9 +1,11 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
+require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
+/** @var array $strings */
 /** @var string $user_name */
 /** @var int $is_auth */
 /** @var int $user_id */
@@ -21,7 +23,7 @@ if (!$is_auth) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $new_lot = [
         "title" => trim($_POST["title"]),
-        "category_id" => $_POST["category_id"] ?? null,
+        "category_id" => $_POST["category_id"] ?? 0,
         "description" => trim($_POST["description"]),
         "initial_price" => $_POST["initial_price"],
         "bid_step" => $_POST["bid_step"],
@@ -30,27 +32,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "author_id" => $user_id,
     ];
 
-    $rules = [
-        "title" => is_valid_length($new_lot["title"], 1, 255),
-        "category_id" => isset($new_lot["category_id"]) && isset($categories[$new_lot["category_id"] - 1]),
-        "description" => is_valid_length($new_lot["description"], 1, 5000),
-        "initial_price" => is_filled($new_lot["initial_price"]) and is_valid_price($new_lot["initial_price"]),
-        "bid_step" => is_filled($new_lot["bid_step"]) and is_valid_price($new_lot["bid_step"]),
-        "uploaded_file" => isset($new_lot["uploaded_file"]) && is_image($new_lot["uploaded_file"]),
-        "date_end" => is_filled($new_lot["date_end"]) and is_valid_date($new_lot["date_end"])
-    ];
-
-    foreach ($rules as $key => $value) {
-        if (!$value) {
-            $errors[] = $key;
-        }
-    }
+    $errors = validate_lot_creation($new_lot, $strings, $categories, $user_id);
 
     if (empty($errors)) {
         $lot_id = create_lot($connect, $new_lot, "uploads/");
 
-        header("Location: /lot.php?id=" . $lot_id);
-        exit();
+        if ($lot_id) {
+            header("Location: /lot.php?id=" . $lot_id);
+            exit();
+        } else {
+            $errors['general'] = $strings['lot_creation_failed'];
+        }
     }
 }
 

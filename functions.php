@@ -6,6 +6,7 @@ const MAX_NAME_LEN = 150;
 const MAX_MESSAGE_LEN = 255;
 const MIN_PASSWORD_LEN = 8;
 const MAX_PASSWORD_LEN = 255;
+const MAX_DESCRIPTION_LEN = 5000;
 
 
 // UTILITY FUNCTIONS
@@ -22,6 +23,19 @@ function get_error_page(int $error, array $categories, string $user_name, int $i
         "user_name" => $user_name,
         "is_auth" => $is_auth
     ]);
+}
+
+/**
+ * Проверка корректности выбранной категории
+ */
+function is_valid_category(array $categories, int $category_id): bool
+{
+    foreach ($categories as $category) {
+        if ((int)$category['id'] === $category_id) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -460,8 +474,7 @@ function validate_registration(mysqli $conn, array $input, array $strings): arra
         $errors['message'] = $strings['message_long'];
     }
 
-    if (!validate_recaptcha($recaptcha_token, "signup"))
-    {
+    if (!validate_recaptcha($recaptcha_token, "signup")) {
         $errors['recaptcha'] = $strings['recaptcha_failed'];
     }
 
@@ -486,8 +499,7 @@ function validate_authentication(array $input, array $strings): array
         $errors['password'] = $strings['password_empty'];
     }
 
-    if (!validate_recaptcha($recaptcha_token, "login"))
-    {
+    if (!validate_recaptcha($recaptcha_token, "login")) {
         $errors['recaptcha'] = $strings['recaptcha_failed'];
     }
 
@@ -581,6 +593,58 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
 
 
 // LOTS FUNCTIONS
+/**
+ * Валидация формы добавления лота
+ */
+function validate_lot_creation(array $data, array $strings, array $categories, int $user_id): array
+{
+    $errors = [];
+
+    if (!is_filled($data['title'])) {
+        $errors['title'] = $strings['title_empty'];
+    } elseif (!is_valid_length($data['title'], 0, MAX_MESSAGE_LEN)) {
+        $errors['title'] = $strings['title_long'];
+    }
+
+    if (!is_filled($data['category_id'])) {
+        $errors['category_id'] = $strings['category_empty'];
+    } elseif (!is_valid_category($categories, (int)$data['category_id'])) {
+        $errors['category_id'] = $strings['category_invalid'];
+    }
+
+    if (!is_filled($data['description'])) {
+        $errors['description'] = $strings['description_empty'];
+    } elseif (!is_valid_length($data['description'], 0, MAX_DESCRIPTION_LEN)) {
+        $errors['description'] = $strings['description_long'];
+    }
+
+    if (!is_filled($data['initial_price'])) {
+        $errors['initial_price'] = $strings['price_empty'];
+    } elseif (!is_valid_price($data['initial_price'])) {
+        $errors['initial_price'] = $strings['price_invalid'];
+    }
+
+    if (!is_filled($data['bid_step'])) {
+        $errors['bid_step'] = $strings['step_empty'];
+    } elseif (!is_valid_price($data['bid_step'])) {
+        $errors['bid_step'] = $strings['step_invalid'];
+    }
+
+    if (!is_uploaded_file($data['uploaded_file']['tmp_name'] ?? '')) {
+        $errors['uploaded_file'] = $strings['image_empty'];
+    } elseif (!is_image($data['uploaded_file'])) {
+        $errors['uploaded_file'] = $strings['image_invalid'];
+    }
+
+    if (!is_filled($data['date_end'])) {
+        $errors['date_end'] = $strings['date_empty'];
+    } elseif (!is_valid_date($data['date_end'])) {
+        $errors['date_end'] = $strings['date_invalid'];
+    }
+
+    return $errors;
+}
+
 /**
  * Создаёт новый лот.
  */
