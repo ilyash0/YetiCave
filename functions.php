@@ -75,7 +75,13 @@ function is_valid_length(string $text, int $min, int $max): bool
  */
 function is_valid_price(string $value): bool
 {
-    return is_numeric($value) && (int)$value > 0;
+    $result = filter_var($value, FILTER_VALIDATE_INT, [
+        'options' => [
+            'min_range' => 1  // Минимальное значение - 1
+        ]
+    ]);
+
+    return $result !== false;
 }
 
 /**
