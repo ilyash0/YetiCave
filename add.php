@@ -1,11 +1,9 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
-require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
-/** @var array $strings */
 /** @var string $user_name */
 /** @var int $is_auth */
 /** @var int $user_id */
@@ -13,6 +11,7 @@ require_once("init.php");
 $errors = [];
 $new_lot = [];
 $categories = get_categories_list($connect);
+$strings = require_once("strings.php");
 
 if (!$is_auth) {
     http_response_code(403);

@@ -1,16 +1,15 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
-require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
-/** @var array $strings */
 /** @var string $user_name */
 /** @var int $user_id */
 /** @var int $is_auth */
 
 $categories = get_categories_list($connect);
+$strings = require_once("strings.php");
 $errors = [];
 $bid_amount = '';
 $lot_id = (int)($_GET['id'] ?? 0);

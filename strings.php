@@ -1,5 +1,5 @@
 <?php
-$strings = [
+return [
     "email_empty" => "Введите e-mail",
     "email_exists" => "Данный e-mail уже занят",
     "email_invalid" => "Введите корректный e-mail",
