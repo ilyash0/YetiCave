@@ -1,11 +1,9 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
-require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
-/** @var array $strings */
 /** @var string $user_name */
 /** @var int $is_auth */
 
@@ -25,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "recaptcha_token" => $_POST['g-recaptcha-response'] ?? ''
     ];
 
-    $errors = validate_authentication($login_data, $strings);
+    $errors = validate_authentication($login_data);
 
     if (empty($errors)) {
         $user = authenticate_user($connect, $login_data["email"], $login_data["password"]);

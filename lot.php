@@ -1,11 +1,9 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
-require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
-/** @var array $strings */
 /** @var string $user_name */
 /** @var int $user_id */
 /** @var int $is_auth */
@@ -32,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $is_auth) {
     $errors = validate_bid([
         'cost' => $bid_amount,
         'lot_id' => $lot_id
-    ], $lot, $connect, $user_id, $strings);
+    ], $lot, $connect, $user_id);
 
     if (empty($errors)) {
         $bid_amount_int = (int)$bid_amount;

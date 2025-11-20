@@ -1,11 +1,9 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
-require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
-/** @var array $strings */
 /** @var string $user_name */
 /** @var int $is_auth */
 /** @var int $user_id */
@@ -32,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "author_id" => $user_id,
     ];
 
-    $errors = validate_lot_creation($new_lot, $strings, $categories);
+    $errors = validate_lot_creation($new_lot);
 
     if (empty($errors)) {
         $lot_id = create_lot($connect, $new_lot, "uploads/");
