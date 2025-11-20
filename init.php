@@ -13,8 +13,14 @@ const RECAPTCHA_SITEKEY = "6Ldecg0sAAAAAGmlTtgpS_O77V7fAEIl3yCXF5in";
 const RECAPTCHA_SECRET = "6Ldecg0sAAAAAN-wcvWQzTp1uNfdiRn_crCkM5U2";
 const RECAPTCHA_MIN_SCORE = 0.5;
 
-
-$connect = mysqli_connect(HOST, USER, PASSWORD, DATABASE);
-if ($connect) {
+try {
+    $connect = mysqli_connect(HOST, USER, PASSWORD, DATABASE);
+    if (!$connect) {
+        throw new RuntimeException();
+    }
     mysqli_set_charset($connect, "utf8");
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo "Внутренняя ошибка сервера";
+    exit;
 }
