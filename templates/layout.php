@@ -57,26 +57,14 @@
         </div>
     </header>
     <nav class="nav <?= basename($_SERVER["SCRIPT_NAME"]) === "index.php" ? "visually-hidden" : '' ?>">
-        <ul class="nav__list container">
-            <?php foreach ($categories as $category): ?>
-               <li class="nav__item <?= $current_category_id === (int)$category["id"] ? "nav__item--current" : ''?>">
-                    <a href="/all-lots.php?category=<?= urlencode($category["symbolic_code"])?>"><?= htmlspecialchars($category["name"]) ?></a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
+        <?= include_template("category-nav_template.php", ["categories" => $categories, "current_category_id" => $current_category_id ?? null]); ?>
     </nav>
     <?= $content; ?>
 </div>
 
 <footer class="main-footer">
     <nav class="nav">
-        <ul class="nav__list container">
-            <?php foreach ($categories as $category): ?>
-                <li class="nav__item <?= $current_category_id === (int)$category["id"] ? "nav__item--current" : ''?>">
-                    <a href="/all-lots.php?category=<?= urlencode($category["symbolic_code"])?>"><?= htmlspecialchars($category["name"]) ?></a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
+        <?= include_template("category-nav_template.php", ["categories" => $categories, "current_category_id" => $current_category_id ?? null]); ?>
     </nav>
     <div class="main-footer__bottom container">
         <div class="main-footer__copyright">

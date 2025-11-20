@@ -1,8 +1,6 @@
 <?php
 /** @var array $categories */
 /** @var array $lots */
-/** @var int $current_page */
-/** @var int $total_pages */
 ?>
 
 <main class="container">

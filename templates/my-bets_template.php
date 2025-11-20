@@ -23,7 +23,6 @@
                     $now = date("Y-m-d");
                     $end_time = new DateTime($date_end);
                     $now_time = new DateTime();
-                    $time_diff = $now_time->diff($end_time);
 
                     $timer = format_lot_timer_data($date_end);
                     $timer_text = $timer["text"];
