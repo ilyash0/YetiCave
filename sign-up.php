@@ -1,9 +1,11 @@
 <?php
 require_once("helpers.php");
 require_once("functions.php");
+require_once("strings.php");
 require_once("init.php");
 
 /** @var mysqli $connect */
+/** @var array $strings */
 /** @var string $user_name */
 /** @var int $is_auth */
 
@@ -27,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "recaptcha_token" => $_POST['g-recaptcha-response'] ?? ''
     ];
 
-    $errors = validate_registration($connect, $new_user);
+    $errors = validate_registration($connect, $new_user, $strings);
 
     if (empty($errors)) {
         register_user($connect, $new_user["name"], $new_user["email"], $new_user["password"], $new_user["message"]);

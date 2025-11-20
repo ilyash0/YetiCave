@@ -424,7 +424,7 @@ function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
 /**
  * Основная функция валидации — возвращает массив ошибок по полям
  */
-function validate_registration(mysqli $conn, array $input): array
+function validate_registration(mysqli $conn, array $input, array $strings): array
 {
     $errors = [];
 
@@ -490,10 +490,9 @@ function validate_registration(mysqli $conn, array $input): array
 /**
  * Основная функция валидации — возвращает массив ошибок по полям
  */
-function validate_authentication(array $input): array
+function validate_authentication(array $input, array $strings): array
 {
     $errors = [];
-    $strings = require_once("strings.php");
     $email = trim($input['email'] ?? '');
     $password = $input['password'] ?? '';
     $recaptcha_token = $input['recaptcha_token'] ?? '';
@@ -603,10 +602,9 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
 /**
  * Валидация формы добавления лота
  */
-function validate_lot_creation(array $data, array $categories): array
+function validate_lot_creation(array $data, array $strings, array $categories): array
 {
     $errors = [];
-    $strings = require_once("strings.php");
 
     if (!is_filled($data['title'])) {
         $errors['title'] = $strings['title_empty'];
@@ -656,10 +654,9 @@ function validate_lot_creation(array $data, array $categories): array
 /**
  * Валидация формы добавления ставки
  */
-function validate_bid(array $data, array $lot, mysqli $connect, int $user_id): array
+function validate_bid(array $data, array $lot, mysqli $connect, int $user_id, array $strings): array
 {
     $errors = [];
-    $strings = require_once("strings.php");
     $bid_amount_input = trim($data['cost'] ?? '');
     $bid_amount = (int)$bid_amount_input;
     $now = date("Y-m-d");
