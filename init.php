@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set("Asia/Yekaterinburg");
 session_start();
 $is_auth = $_SESSION["is_auth"] ?? 0;
 $user_id = $_SESSION["user_id"] ?? 0;

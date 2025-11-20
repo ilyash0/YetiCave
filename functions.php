@@ -1,5 +1,5 @@
 <?php
-date_default_timezone_set("Asia/Yekaterinburg");
+require_once("helpers.php");
 const HOURS_IN_DAY = 24;
 const MAX_EMAIL_LEN = 255;
 const MAX_NAME_LEN = 150;
@@ -66,7 +66,7 @@ function is_filled(string $text): bool
  */
 function is_valid_length(string $text, int $min, int $max): bool
 {
-    $len = strlen($text);
+    $len = mb_strlen($text);
     return $len >= $min && $len <= $max;
 }
 
@@ -106,7 +106,7 @@ function is_valid_date(string $date): bool
 }
 
 /**
- * Проверяет, что файл — изображение (jpeg, png, webp).
+ * Проверяет, что файл — изображение (jpeg, png, jpg).
  */
 function is_image($file): bool
 {
@@ -118,7 +118,7 @@ function is_image($file): bool
     $file_type = finfo_file($finfo, $file["tmp_name"]);
     finfo_close($finfo);
 
-    return in_array($file_type, ["image/jpeg", "image/png", "image/jpg"]);
+    return in_array($file_type, ["image/jpeg", "image/png"]);
 }
 
 /**
@@ -159,14 +159,11 @@ function has_special_chars(string $string): bool
 function is_common_password(string $string): bool
 {
     $common_passwords = [
-        "123456", "password", "12345678", "qwerty", "12345", "123456789",
-        "1234", "111111", "1234567", "dragon", "123123", "baseball",
-        "admin", "letmein", "welcome", "monkey", "login", "abc123",
-        "starwars", "1234qwer", "1q2w3e4r", "1qaz2wsx", "trustno1",
-        "привет", "qwerty123", "password1", "iloveyou", "1234567890",
-        "asdfgh", "123321", "123qwe", "q1w2e3r4", "zaq12wsx",
-        "qwertyuiop", "1q2w3e4r5t", "123456a", "123456789a", "987654321",
-        "пароль", "йцукен"
+        "12345678", "123456789", "1234567890", "12345678910", "987654321", "aa123456", "admin123",
+        "123123123", "p@ssw0rd", "aa@123456", "admintelecom", "admin@123", "112233",
+        "1234qwer", "1q2w3e4r", "qwerty123", "password1", "pass@123", "q1w2e3r4",
+        "qwertyui", "qwertyuiop", "qwertyuio", "testtest", "password",
+        "йцукенгш", "йцукенгшщз","йцукенгшщзх", "йцукенгшщ", "йцукенгшщзхъ"
     ];
 
     return in_array(mb_strtolower($string, "UTF-8"), $common_passwords);
@@ -218,6 +215,24 @@ function paginate_data(array $data, int $current_page, int $items_per_page): arr
 
 // DATA BASE FUNCTIONS
 /**
+ * Основа для всех запросов получения данных о лотах
+ */
+function query_lot_base(): string
+{
+    return "SELECT 
+                l.id, l.title, l.initial_price, l.image_url, l.winner_id,
+                l.description, l.bid_step, l.date_end, l.author_id,
+                c.name AS category_name, l.created_at,
+                (
+                    SELECT COALESCE(MAX(b2.amount), l.initial_price)
+                    FROM bids b2
+                    WHERE b2.lot_id = l.id
+                ) AS current_price
+            FROM lots l
+            JOIN categories c ON l.category_id = c.id";
+}
+
+/**
  * Выполняет SQL-запрос SELECT и возвращает все строки.
  * Использует подготовленные выражения (prepare).
  */
@@ -268,14 +283,8 @@ function get_categories_list(mysqli $connect): array
  */
 function get_active_lots_list(mysqli $connect): array
 {
-    $sql = "SELECT l.id, l.title, l.initial_price, l.image_url, 
-                   c.name AS category_name, l.date_end,
-                   COALESCE(MAX(b.amount), l.initial_price) AS current_price
-            FROM lots l
-            JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b ON l.id = b.lot_id
+    $sql = query_lot_base() . "
             WHERE l.date_end >= CURDATE()
-            GROUP BY l.id, l.created_at
             ORDER BY l.created_at DESC";
 
     return db_fetch_all($connect, $sql);
@@ -290,16 +299,8 @@ function get_lot_by_id(mysqli $connect, ?int $id): ?array
         return null;
     }
 
-    $sql = "SELECT 
-                l.id, l.title, l.initial_price, l.image_url, l.winner_id,
-                l.description, l.bid_step, l.date_end, l.author_id,
-                c.name AS category_name,
-                COALESCE(MAX(b.amount), l.initial_price) AS current_price
-            FROM lots l
-            JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b ON l.id = b.lot_id
-            WHERE l.id = ?
-            GROUP BY l.id";
+    $sql = query_lot_base() . "
+            WHERE l.id = ?";
 
     return db_fetch_one($connect, $sql, [$id]);
 }
@@ -310,23 +311,16 @@ function get_lot_by_id(mysqli $connect, ?int $id): ?array
 function search_lots_by_query(mysqli $connect, string $query): array
 {
     $query = trim($query);
-    if (strlen($query) < 3) {
+    if (mb_strlen($query) < 3) {
         return [];
     }
 
     $query = mb_strtolower($query, "UTF-8");
 
-    $sql = "SELECT 
-                l.id, l.title, l.description, l.image_url, l.initial_price, 
-                l.date_end, c.name AS category_name,
-                COALESCE(MAX(b.amount), l.initial_price) AS current_price
-            FROM lots l
-            JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b ON l.id = b.lot_id
+    $sql = query_lot_base() . "
             WHERE 
                 MATCH(l.title, l.description) AGAINST (?)
                 AND l.date_end >= CURDATE()
-            GROUP BY l.id, l.created_at
             ORDER BY l.created_at DESC";
 
     return db_fetch_all($connect, $sql, [$query]);
@@ -348,17 +342,10 @@ function get_category_by_symbolic_code(mysqli $connect, string $name): ?array
  */
 function get_lots_by_category_id(mysqli $connect, int $category_id): array
 {
-    $sql = "SELECT 
-                l.id, l.title, l.description, l.image_url, l.initial_price, 
-                l.date_end, c.name AS category_name,
-                COALESCE(MAX(b.amount), l.initial_price) AS current_price
-            FROM lots l
-            INNER JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b ON l.id = b.lot_id
+    $sql = query_lot_base() . "
             WHERE 
                 l.category_id = ?
                 AND l.date_end >= NOW()
-            GROUP BY l.id, l.created_at
             ORDER BY l.created_at DESC";
 
     return db_fetch_all($connect, $sql, [$category_id]);
@@ -424,7 +411,7 @@ function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
 /**
  * Основная функция валидации — возвращает массив ошибок по полям
  */
-function validate_registration(mysqli $conn, array $input, array $strings): array
+function validate_registration(mysqli $connect, array $input, array $strings): array
 {
     $errors = [];
 
@@ -440,15 +427,15 @@ function validate_registration(mysqli $conn, array $input, array $strings): arra
         $errors['email'] = $strings['email_long'];
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = $strings['email_invalid'];
-    } elseif (is_email_exists($conn, $email)) {
+    } elseif (is_email_exists($connect, $email)) {
         $errors['email'] = $strings['email_exists'];
     }
 
-    if (!is_filled($email)) {
+    if (!is_filled($password)) {
         $errors['password_empty'] = $strings['password_empty'];
-    } elseif (strlen($password) < MIN_PASSWORD_LEN) {
+    } elseif (mb_strlen($password) < MIN_PASSWORD_LEN) {
         $errors['password_short'] = $strings['password_short'];
-    } elseif (strlen($password) > MAX_PASSWORD_LEN) {
+    } elseif (mb_strlen($password) > MAX_PASSWORD_LEN) {
         $errors['password_long'] = $strings['password_long'];
     } else {
         if (!has_uppercase($password)) {
@@ -513,9 +500,7 @@ function validate_authentication(array $input, array $strings): array
 }
 
 /**
- * @param mixed $recaptcha_token
- * @param string $expected_action
- * @return bool
+ * Проверяет корректность reCAPTCHA v3 токена
  */
 function validate_recaptcha(string $recaptcha_token, string $expected_action): bool
 {
@@ -523,24 +508,27 @@ function validate_recaptcha(string $recaptcha_token, string $expected_action): b
         return false;
     }
 
-    $rec = verify_recaptcha_v3(RECAPTCHA_SECRET, $recaptcha_token);
+    $recaptcha = get_recaptcha_verification_result(RECAPTCHA_SECRET, $recaptcha_token);
 
-    if (!$rec || empty($rec['success'])) {
+    if (!$recaptcha || empty($recaptcha['success'])) {
         return false;
     }
 
-    if (isset($rec['action']) && $rec['action'] !== $expected_action) {
+    if (isset($recaptcha['action']) && $recaptcha['action'] !== $expected_action) {
         return false;
     }
 
-    if (isset($rec['score']) && $rec['score'] < RECAPTCHA_MIN_SCORE) {
+    if (isset($recaptcha['score']) && $recaptcha['score'] < RECAPTCHA_MIN_SCORE) {
         return false;
     }
 
     return true;
 }
 
-function verify_recaptcha_v3(string $secret, string $token, ?string $remote_ip = null): ?array
+/**
+ * Выполняет запрос к серверу Google reCAPTCHA v3 API для проверки подлинности токена
+ */
+function get_recaptcha_verification_result(string $secret, string $token, ?string $remote_ip = null): ?array
 {
     $url = 'https://www.google.com/recaptcha/api/siteverify';
     $data = [
@@ -605,46 +593,53 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
 function validate_lot_creation(array $data, array $strings, array $categories): array
 {
     $errors = [];
+    $title = $data['title'] ?? '';
+    $category_id = $data['category_id'] ?? '';
+    $description = $data['description'] ?? '';
+    $initial_price = $data['initial_price'] ?? '';
+    $bid_step = $data['bid_step'] ?? '';
+    $uploaded_file = $data['uploaded_file'] ?? null;
+    $date_end = $data['date_end'] ?? '';
 
-    if (!is_filled($data['title'])) {
+    if (!is_filled($title)) {
         $errors['title'] = $strings['title_empty'];
-    } elseif (!is_valid_length($data['title'], 0, MAX_MESSAGE_LEN)) {
+    } elseif (!is_valid_length($title, 0, MAX_MESSAGE_LEN)) {
         $errors['title'] = $strings['title_long'];
     }
 
-    if (!is_filled($data['category_id'])) {
+    if (!is_filled($category_id)) {
         $errors['category_id'] = $strings['category_empty'];
-    } elseif (!is_valid_category($categories, (int)$data['category_id'])) {
+    } elseif (!is_valid_category($categories, (int)$category_id)) {
         $errors['category_id'] = $strings['category_invalid'];
     }
 
-    if (!is_filled($data['description'])) {
+    if (!is_filled($description)) {
         $errors['description'] = $strings['description_empty'];
-    } elseif (!is_valid_length($data['description'], 0, MAX_DESCRIPTION_LEN)) {
+    } elseif (!is_valid_length($description, 0, MAX_DESCRIPTION_LEN)) {
         $errors['description'] = $strings['description_long'];
     }
 
-    if (!is_filled($data['initial_price'])) {
+    if (!is_filled($initial_price)) {
         $errors['initial_price'] = $strings['price_empty'];
-    } elseif (!is_valid_price($data['initial_price'])) {
+    } elseif (!is_valid_price($initial_price)) {
         $errors['initial_price'] = $strings['price_invalid'];
     }
 
-    if (!is_filled($data['bid_step'])) {
+    if (!is_filled($bid_step)) {
         $errors['bid_step'] = $strings['step_empty'];
-    } elseif (!is_valid_price($data['bid_step'])) {
+    } elseif (!is_valid_price($bid_step)) {
         $errors['bid_step'] = $strings['step_invalid'];
     }
 
-    if (!is_uploaded_file($data['uploaded_file']['tmp_name'] ?? '')) {
+    if (!is_uploaded_file($uploaded_file['tmp_name'] ?? '')) {
         $errors['uploaded_file'] = $strings['image_empty'];
-    } elseif (!is_image($data['uploaded_file'])) {
+    } elseif (!is_image($uploaded_file)) {
         $errors['uploaded_file'] = $strings['image_invalid'];
     }
 
-    if (!is_filled($data['date_end'])) {
+    if (!is_filled($date_end)) {
         $errors['date_end'] = $strings['date_empty'];
-    } elseif (!is_valid_date($data['date_end'])) {
+    } elseif (!is_valid_date($date_end)) {
         $errors['date_end'] = $strings['date_invalid'];
     }
 
