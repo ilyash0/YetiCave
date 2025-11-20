@@ -6,16 +6,14 @@ require_once("init.php");
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
+/** @var int $user_id */
 
 if (!$is_auth) {
     header("Location: /login.php");
     exit();
 }
 
-$user_id = (int)$_SESSION["user_id"];
 $categories = get_categories_list($connect);
-
-// Получаем ставки пользователя с информацией о лоте
 $bets = get_bids_by_user_id($connect, $user_id);
 
 $page_content = include_template("my-bets_template.php", [
