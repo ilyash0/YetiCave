@@ -7,6 +7,8 @@ const MAX_MESSAGE_LEN = 255;
 const MIN_PASSWORD_LEN = 8;
 const MAX_PASSWORD_LEN = 255;
 const MAX_DESCRIPTION_LEN = 5000;
+const MIN_PRICE = 1;
+const MAX_PRICE = 4_294_967_295;
 
 
 // UTILITY FUNCTIONS
@@ -68,20 +70,19 @@ function is_email_exists(mysqli $connect, string $email): bool
 }
 
 /**
- * Проверяет, что значение — положительное число.
+ * Проверяет, что значение — число в диапазоне от 1 до 4294967295.
  *
  * @param string $value
  * @return bool
  */
 function is_valid_price(string $value): bool
 {
-    $result = filter_var($value, FILTER_VALIDATE_INT, [
+    return (bool)filter_var($value, FILTER_VALIDATE_INT, [
         'options' => [
-            'min_range' => 1
+            'min_range' => MIN_PRICE,
+            'max_range' => MAX_PRICE
         ]
     ]);
-
-    return $result !== false;
 }
 
 /**
@@ -795,7 +796,7 @@ function validate_bid(string $bid_amount_input, array $lot, mysqli $connect, int
         $errors['bid'] = $strings['bid_same_user'];
     } elseif (empty($bid_amount_input)) {
         $errors['bid'] = $strings['bid_empty'];
-    } elseif (!is_numeric($bid_amount_input) || $bid_amount <= 0) {
+    } elseif (!is_valid_price($bid_amount)) {
         $errors['bid'] = $strings['bid_invalid'];
     } else {
         $current_price = (int)$lot['current_price'] ?? 0;
