@@ -9,7 +9,6 @@ require_once("init.php");
 /** @var int $user_id */
 
 $errors = [];
-$new_lot = [];
 $categories = get_categories_list($connect);
 $strings = require_once("strings.php");
 
@@ -34,14 +33,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $errors = validate_lot_creation($new_lot, $strings, $categories);
 
     if (empty($errors)) {
-        $lot_id = create_lot($connect, $new_lot, "uploads/");
+        $lot_id = create_lot($connect, $new_lot);
 
         if ($lot_id) {
             header("Location: /lot.php?id=" . $lot_id);
             exit();
-        } else {
-            $errors['general'] = $strings['lot_creation_failed'];
         }
+        $errors['general'] = $strings['lot_creation_failed'];
     }
 }
 

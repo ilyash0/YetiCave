@@ -10,21 +10,20 @@ require_once("init.php");
 
 $categories = get_categories_list($connect);
 $search_category = trim($_GET["category"] ?? "boards");
+$current_category = get_category_by_symbolic_code($connect, $search_category);
+$current_category_id = $current_category["id"] ?? null;
 
-$category = get_category_by_symbolic_code($connect, $search_category);
-$category_id = $category["id"] ?? null;
-
-if ($search_category && $category_id === null) {
+if ($search_category && $current_category_id === null) {
     http_response_code(404);
     print(get_error_page(404, $categories, $user_name, $is_auth));
     exit();
 }
 
-$all_results = get_lots_by_category_id($connect, $category_id);
+$all_results = get_lots_by_category_id($connect, $current_category_id);
 $pagination_data = paginate_data($all_results, (int)($_GET["page"] ?? 1), LOTS_PER_PAGE);
 
-$page_content = include_template("search_template.php", [
-    "title" => "Все лоты в категории «" . $category["name"] . "»",
+$page_content = include_template("lots-list_template.php", [
+    "title" => "Все лоты в категории «" . $current_category["name"] . "»",
     "search_query" => $search_category,
     "lots" => $pagination_data["items"],
     "total_pages" => $pagination_data["total_pages"],
@@ -33,11 +32,11 @@ $page_content = include_template("search_template.php", [
 
 $layout_content = include_template("layout.php", [
     "content" => $page_content,
-    "title" => "Все лоты в категории «" . $category["name"] . "»",
+    "title" => "Все лоты в категории «" . $current_category["name"] . "»",
     "categories" => $categories,
     "user_name" => $user_name,
     "is_auth" => $is_auth,
-    "current_category_id" => $category_id,
+    "current_category_id" => $current_category_id,
 ]);
 
 print($layout_content);

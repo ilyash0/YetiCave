@@ -1,10 +1,8 @@
 <?php
 /** @var array $lot */
 /** @var array $bids */
-/** @var int $is_auth */
 /** @var bool $should_hide_bid_form */
 /** @var array $bid_errors */
-/** @var string $bid_amount */
 ?>
 
 <main>

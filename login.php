@@ -36,9 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             header("Location: /");
             exit();
-        } else {
-            $errors["auth"] = $strings["auth_failed"];
         }
+        $errors["auth"] = $strings["auth_failed"];
     }
 }
 

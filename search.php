@@ -19,7 +19,7 @@ if (empty($search_query)) {
 $all_results = search_lots_by_query($connect, $search_query);
 $pagination_data = paginate_data($all_results, (int)($_GET["page"] ?? 1), LOTS_PER_PAGE);
 
-$page_content = include_template("search_template.php", [
+$page_content = include_template("lots-list_template.php", [
     "title" => "Результаты поиска по запросу «" . $search_query . "»",
     "search_query" => $search_query,
     "lots" => $pagination_data["items"],

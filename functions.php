@@ -68,17 +68,6 @@ function is_email_exists(mysqli $connect, string $email): bool
 }
 
 /**
- * Проверяет, что строка не пуста.
- *
- * @param string $text
- * @return bool
- */
-function is_filled(string $text): bool
-{
-    return !empty(trim($text));
-}
-
-/**
  * Проверяет, что значение — положительное число.
  *
  * @param string $value
@@ -523,7 +512,7 @@ function validate_registration(mysqli $connect, array $input, array $strings): a
     $message = trim($input['message'] ?? '');
     $recaptcha_token = $input['recaptcha_token'] ?? '';
 
-    if (!is_filled($email)) {
+    if (empty($email)) {
         $errors['email'] = $strings['email_empty'];
     } elseif (mb_strlen($email) > MAX_EMAIL_LEN) {
         $errors['email'] = $strings['email_long'];
@@ -533,7 +522,7 @@ function validate_registration(mysqli $connect, array $input, array $strings): a
         $errors['email'] = $strings['email_exists'];
     }
 
-    if (!is_filled($password)) {
+    if (empty($password)) {
         $errors['password_empty'] = $strings['password_empty'];
     } elseif (mb_strlen($password) < MIN_PASSWORD_LEN) {
         $errors['password_short'] = $strings['password_short'];
@@ -557,13 +546,13 @@ function validate_registration(mysqli $connect, array $input, array $strings): a
         }
     }
 
-    if (!is_filled($name)) {
+    if (empty($name)) {
         $errors['name'] = $strings['name_empty'];
     } elseif (mb_strlen($name) > MAX_NAME_LEN) {
         $errors['name'] = $strings['name_long'];
     }
 
-    if (!is_filled($message)) {
+    if (empty($message)) {
         $errors['message'] = $strings['message_empty'];
     } elseif (mb_strlen($message) > MAX_MESSAGE_LEN) {
         $errors['message'] = $strings['message_long'];
@@ -590,7 +579,7 @@ function validate_authentication(array $input, array $strings): array
     $password = $input['password'] ?? '';
     $recaptcha_token = $input['recaptcha_token'] ?? '';
 
-    if (!is_filled($email)) {
+    if (empty($email)) {
         $errors['email'] = $strings['email_empty'];
     }
 
@@ -733,31 +722,31 @@ function validate_lot_creation(array $data, array $strings, array $categories): 
     $uploaded_file = $data['uploaded_file'] ?? null;
     $date_end = $data['date_end'] ?? '';
 
-    if (!is_filled($title)) {
+    if (empty($title)) {
         $errors['title'] = $strings['title_empty'];
     } elseif (mb_strlen($title) > MAX_MESSAGE_LEN) {
         $errors['title'] = $strings['title_long'];
     }
 
-    if (!is_filled($category_id)) {
+    if (empty($category_id)) {
         $errors['category_id'] = $strings['category_empty'];
     } elseif (!is_valid_category($categories, (int)$category_id)) {
         $errors['category_id'] = $strings['category_invalid'];
     }
 
-    if (!is_filled($description)) {
+    if (empty($description)) {
         $errors['description'] = $strings['description_empty'];
     } elseif (mb_strlen($description) > MAX_DESCRIPTION_LEN) {
         $errors['description'] = $strings['description_long'];
     }
 
-    if (!is_filled($initial_price)) {
+    if (empty($initial_price)) {
         $errors['initial_price'] = $strings['price_empty'];
     } elseif (!is_valid_price($initial_price)) {
         $errors['initial_price'] = $strings['price_invalid'];
     }
 
-    if (!is_filled($bid_step)) {
+    if (empty($bid_step)) {
         $errors['bid_step'] = $strings['step_empty'];
     } elseif (!is_valid_price($bid_step)) {
         $errors['bid_step'] = $strings['step_invalid'];
@@ -769,7 +758,7 @@ function validate_lot_creation(array $data, array $strings, array $categories): 
         $errors['uploaded_file'] = $strings['image_invalid'];
     }
 
-    if (!is_filled($date_end)) {
+    if (empty($date_end)) {
         $errors['date_end'] = $strings['date_empty'];
     } elseif (!is_valid_date($date_end)) {
         $errors['date_end'] = $strings['date_invalid'];

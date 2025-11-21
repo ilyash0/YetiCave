@@ -11,7 +11,6 @@ require_once("init.php");
 $categories = get_categories_list($connect);
 $strings = require_once("strings.php");
 $errors = [];
-$bid_amount = '';
 $lot_id = (int)($_GET['id'] ?? 0);
 
 $lot = get_lot_by_id($connect, $lot_id);
@@ -54,13 +53,12 @@ $page_content = include_template("lot_template.php", [
     "bids" => $bids,
     "is_auth" => $is_auth,
     "should_hide_bid_form" => $should_hide_bid_form,
-    "bid_errors" => $errors,
-    "bid_amount" => $bid_amount
+    "bid_errors" => $errors
 ]);
 
 $layout_content = include_template("layout.php", [
     "content" => $page_content,
-    "title" => htmlspecialchars($lot['title']),
+    "title" => $lot['title'],
     "categories" => $categories,
     "user_name" => $user_name,
     "is_auth" => $is_auth

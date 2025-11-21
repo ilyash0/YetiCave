@@ -6,7 +6,6 @@ require_once("init.php");
 /** @var mysqli $connect */
 /** @var string $user_name */
 /** @var int $is_auth */
-/** @const int LOTS_PER_PAGE */
 
 check_and_set_expired_lots_winners($connect);
 $categories = get_categories_list($connect);
