@@ -18,7 +18,7 @@
                 <p class="lot-item__description"><?= htmlspecialchars($lot["description"]) ?></p>
             </div>
             <div class="lot-item__right">
-                <div class="lot-item__state <?= $should_hide_bid_form ? "visually-hidden" : "" ?>">
+                <div class="lot-item__state">
                     <?php
                     $timer = format_lot_timer_data($lot["date_end"]);
                     $timer_text = $timer["text"];
@@ -40,7 +40,7 @@
                         </div>
                     </div>
 
-                    <form class="lot-item__form"
+                    <form class="lot-item__form <?= $should_hide_bid_form ? "visually-hidden" : "" ?>"
                           action="/lot.php?id=<?= (int)$lot['id'] ?>"
                           method="post"
                           autocomplete="off">
