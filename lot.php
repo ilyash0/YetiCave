@@ -2,14 +2,15 @@
 require_once("helpers.php");
 require_once("functions.php");
 require_once("init.php");
+require_once("strings.php");
 
 /** @var mysqli $connect */
+/** @var array $strings */
 /** @var string $user_name */
 /** @var int $user_id */
 /** @var int $is_auth */
 
 $categories = get_categories_list($connect);
-$strings = require_once("strings.php");
 $errors = [];
 $lot_id = (int)($_GET['id'] ?? 0);
 
