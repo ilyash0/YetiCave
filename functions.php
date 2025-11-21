@@ -12,6 +12,12 @@ const MAX_DESCRIPTION_LEN = 5000;
 // UTILITY FUNCTIONS
 /**
  * Возвращает HTML-страницу ошибки.
+ *
+ * @param int $error
+ * @param array $categories
+ * @param string $user_name
+ * @param int $is_auth
+ * @return string
  */
 function get_error_page(int $error, array $categories, string $user_name, int $is_auth): string
 {
@@ -27,6 +33,10 @@ function get_error_page(int $error, array $categories, string $user_name, int $i
 
 /**
  * Проверка корректности выбранной категории
+ *
+ * @param array $categories
+ * @param int $category_id
+ * @return bool
  */
 function is_valid_category(array $categories, int $category_id): bool
 {
@@ -40,6 +50,10 @@ function is_valid_category(array $categories, int $category_id): bool
 
 /**
  * Проверяет, существует ли пользователь с указанным email
+ *
+ * @param mysqli $connect
+ * @param string $email
+ * @return bool
  */
 function is_email_exists(mysqli $connect, string $email): bool
 {
@@ -55,6 +69,9 @@ function is_email_exists(mysqli $connect, string $email): bool
 
 /**
  * Проверяет, что строка не пуста.
+ *
+ * @param string $text
+ * @return bool
  */
 function is_filled(string $text): bool
 {
@@ -63,6 +80,9 @@ function is_filled(string $text): bool
 
 /**
  * Проверяет, что значение — положительное число.
+ *
+ * @param string $value
+ * @return bool
  */
 function is_valid_price(string $value): bool
 {
@@ -77,6 +97,9 @@ function is_valid_price(string $value): bool
 
 /**
  * Проверяет, что дата в формате Y-m-d и в будущем.
+ *
+ * @param string $date
+ * @return bool
  */
 function is_valid_date(string $date): bool
 {
@@ -98,6 +121,9 @@ function is_valid_date(string $date): bool
 
 /**
  * Проверяет, что файл — изображение (jpeg, png, jpg).
+ *
+ * @param $file
+ * @return bool
  */
 function is_image($file): bool
 {
@@ -122,6 +148,9 @@ function is_image($file): bool
 
 /**
  * Проверяет, содержит ли строка заглавные буквы
+ *
+ * @param string $string
+ * @return bool
  */
 function has_uppercase(string $string): bool
 {
@@ -130,6 +159,9 @@ function has_uppercase(string $string): bool
 
 /**
  * Проверяет, содержит ли строка строчные буквы
+ *
+ * @param string $string
+ * @return bool
  */
 function has_lowercase(string $string): bool
 {
@@ -138,6 +170,9 @@ function has_lowercase(string $string): bool
 
 /**
  * Проверяет, содержит ли строка цифры
+ *
+ * @param string $string
+ * @return bool
  */
 function has_digit(string $string): bool
 {
@@ -146,6 +181,9 @@ function has_digit(string $string): bool
 
 /**
  * Проверяет, содержит ли строка специальные символы
+ *
+ * @param string $string
+ * @return bool
  */
 function has_special_chars(string $string): bool
 {
@@ -154,6 +192,9 @@ function has_special_chars(string $string): bool
 
 /**
  * Проверяет, является ли строка одним из часто используемых ненадежных паролей
+ *
+ * @param string $string
+ * @return bool
  */
 function is_common_password(string $string): bool
 {
@@ -170,6 +211,10 @@ function is_common_password(string $string): bool
 
 /**
  * Группирует ошибки валидации по полям формы
+ *
+ * @param array $errors
+ * @param array $fields
+ * @return array
  */
 function group_errors_by_field(array $errors, array $fields): array
 {
@@ -189,6 +234,11 @@ function group_errors_by_field(array $errors, array $fields): array
 
 /**
  * Выполняет расчёт пагинации и возвращает нужный срез данных.
+ *
+ * @param array $data
+ * @param int $current_page
+ * @param int $items_per_page
+ * @return array{items: array, total_pages: float, current_page: int|mixed}
  */
 function paginate_data(array $data, int $current_page, int $items_per_page): array
 {
@@ -215,6 +265,8 @@ function paginate_data(array $data, int $current_page, int $items_per_page): arr
 // DATA BASE FUNCTIONS
 /**
  * Основа для всех запросов получения данных о лотах
+ *
+ * @return string
  */
 function query_lot_base(): string
 {
@@ -233,6 +285,11 @@ function query_lot_base(): string
 
 /**
  * Выполняет SQL-запрос SELECT и возвращает все строки.
+ *
+ * @param mysqli $connect
+ * @param string $sql
+ * @param array $params
+ * @return array
  */
 function db_fetch_all(mysqli $connect, string $sql, array $params = []): array
 {
@@ -250,6 +307,11 @@ function db_fetch_all(mysqli $connect, string $sql, array $params = []): array
 
 /**
  * Выполняет SQL-запрос SELECT и возвращает одну строку.
+ *
+ * @param mysqli $connect
+ * @param string $sql
+ * @param array $params
+ * @return array|null
  */
 function db_fetch_one(mysqli $connect, string $sql, array $params = []): ?array
 {
@@ -267,6 +329,9 @@ function db_fetch_one(mysqli $connect, string $sql, array $params = []): ?array
 
 /**
  * Возвращает список всех категорий.
+ *
+ * @param mysqli $connect
+ * @return array
  */
 function get_categories_list(mysqli $connect): array
 {
@@ -277,6 +342,9 @@ function get_categories_list(mysqli $connect): array
 
 /**
  * Возвращает активные лоты (торги не закончены).
+ *
+ * @param mysqli $connect
+ * @return array
  */
 function get_active_lots_list(mysqli $connect): array
 {
@@ -289,6 +357,10 @@ function get_active_lots_list(mysqli $connect): array
 
 /**
  * Возвращает лот по ID.
+ *
+ * @param mysqli $connect
+ * @param int $id
+ * @return array|null
  */
 function get_lot_by_id(mysqli $connect, int $id): ?array
 {
@@ -300,6 +372,10 @@ function get_lot_by_id(mysqli $connect, int $id): ?array
 
 /**
  * Выполняет полнотекстовый поиск по активным лотам.
+ *
+ * @param mysqli $connect
+ * @param string $query
+ * @return array
  */
 function search_lots_by_query(mysqli $connect, string $query): array
 {
@@ -321,6 +397,10 @@ function search_lots_by_query(mysqli $connect, string $query): array
 
 /**
  * Получает категорию по её названию
+ *
+ * @param mysqli $connect
+ * @param string $name
+ * @return array|null
  */
 function get_category_by_symbolic_code(mysqli $connect, string $name): ?array
 {
@@ -331,6 +411,10 @@ function get_category_by_symbolic_code(mysqli $connect, string $name): ?array
 
 /**
  * Получает активные лоты по ID категории
+ *
+ * @param mysqli $connect
+ * @param int $category_id
+ * @return array
  */
 function get_lots_by_category_id(mysqli $connect, int $category_id): array
 {
@@ -345,6 +429,12 @@ function get_lots_by_category_id(mysqli $connect, int $category_id): array
 
 /**
  * Добавляет ставку.
+ *
+ * @param mysqli $connect
+ * @param int $lot_id
+ * @param int $user_id
+ * @param int $amount
+ * @return bool
  */
 function add_bid(mysqli $connect, int $lot_id, int $user_id, int $amount): bool
 {
@@ -355,6 +445,10 @@ function add_bid(mysqli $connect, int $lot_id, int $user_id, int $amount): bool
 
 /**
  * Возвращает ставки для лота (новые сверху).
+ *
+ * @param mysqli $connect
+ * @param int $lot_id
+ * @return array
  */
 function get_bids_by_lot_id(mysqli $connect, int $lot_id): array
 {
@@ -369,6 +463,10 @@ function get_bids_by_lot_id(mysqli $connect, int $lot_id): array
 
 /**
  * Возвращает ставки пользователя с информацией о лоте.
+ *
+ * @param mysqli $connect
+ * @param int $user_id
+ * @return array
  */
 function get_bids_by_user_id(mysqli $connect, int $user_id): array
 {
@@ -394,6 +492,10 @@ function get_bids_by_user_id(mysqli $connect, int $user_id): array
 
 /**
  * Возвращает последнюю ставку для лота.
+ *
+ * @param mysqli $connect
+ * @param int $lot_id
+ * @return array|null
  */
 function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
 {
@@ -405,6 +507,11 @@ function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
 //  AUTH FUNCTIONS
 /**
  * Основная функция валидации формы регистрации — возвращает массив ошибок по полям
+ *
+ * @param mysqli $connect
+ * @param array $input
+ * @param array $strings
+ * @return array
  */
 function validate_registration(mysqli $connect, array $input, array $strings): array
 {
@@ -471,6 +578,10 @@ function validate_registration(mysqli $connect, array $input, array $strings): a
 
 /**
  * Основная функция валидации формы авторизации — возвращает массив ошибок по полям
+ *
+ * @param array $input
+ * @param array $strings
+ * @return array
  */
 function validate_authentication(array $input, array $strings): array
 {
@@ -496,6 +607,10 @@ function validate_authentication(array $input, array $strings): array
 
 /**
  * Проверяет корректность reCAPTCHA v3 токена
+ *
+ * @param string $recaptcha_token
+ * @param string $expected_action
+ * @return bool
  */
 function validate_recaptcha(string $recaptcha_token, string $expected_action): bool
 {
@@ -522,6 +637,11 @@ function validate_recaptcha(string $recaptcha_token, string $expected_action): b
 
 /**
  * Выполняет запрос к серверу Google reCAPTCHA v3 API для проверки подлинности токена
+ *
+ * @param string $secret
+ * @param string $token
+ * @param string|null $remote_ip
+ * @return array|null
  */
 function get_recaptcha_verification_result(string $secret, string $token, ?string $remote_ip = null): ?array
 {
@@ -553,6 +673,11 @@ function get_recaptcha_verification_result(string $secret, string $token, ?strin
 
 /**
  * Аутентифицирует пользователя.
+ *
+ * @param mysqli $connect
+ * @param string $email
+ * @param string $password
+ * @return array|null
  */
 function authenticate_user(mysqli $connect, string $email, string $password): ?array
 {
@@ -568,6 +693,13 @@ function authenticate_user(mysqli $connect, string $email, string $password): ?a
 
 /**
  * Регистрирует нового пользователя.
+ *
+ * @param mysqli $connect
+ * @param string $name
+ * @param string $email
+ * @param string $password
+ * @param string $contact_information
+ * @return bool
  */
 function register_user(mysqli $connect, string $name, string $email, string $password, string $contact_information): bool
 {
@@ -584,6 +716,11 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
 // LOTS FUNCTIONS
 /**
  * Основная функция валидации формы добавления лота — возвращает массив ошибок по полям
+ *
+ * @param array $data
+ * @param array $strings
+ * @param array $categories
+ * @return array
  */
 function validate_lot_creation(array $data, array $strings, array $categories): array
 {
@@ -643,6 +780,13 @@ function validate_lot_creation(array $data, array $strings, array $categories): 
 
 /**
  * Основная функция валидации формы добавления ставки — возвращает массив ошибок по полям
+ *
+ * @param string $bid_amount_input
+ * @param array $lot
+ * @param mysqli $connect
+ * @param int $user_id
+ * @param array $strings
+ * @return array
  */
 function validate_bid(string $bid_amount_input, array $lot, mysqli $connect, int $user_id, array $strings): array
 {
@@ -681,6 +825,11 @@ function validate_bid(string $bid_amount_input, array $lot, mysqli $connect, int
 
 /**
  * Создаёт новый лот.
+ *
+ * @param mysqli $connect
+ * @param array $lot_data
+ * @param string $upload_dir
+ * @return int|null
  */
 function create_lot(mysqli $connect, array $lot_data, string $upload_dir = "uploads/"): ?int
 {
@@ -724,6 +873,10 @@ function create_lot(mysqli $connect, array $lot_data, string $upload_dir = "uplo
 
 /**
  * Проверяет и устанавливает победителя для лота.
+ *
+ * @param mysqli $connect
+ * @param int $lot_id
+ * @return int|null
  */
 function set_winner_for_lot(mysqli $connect, int $lot_id): ?int
 {
@@ -748,6 +901,9 @@ function set_winner_for_lot(mysqli $connect, int $lot_id): ?int
 
 /**
  * Проверяет и устанавливает победителей для всех истёкших лотов.
+ *
+ * @param mysqli $connect
+ * @return void
  */
 function check_and_set_expired_lots_winners(mysqli $connect): void
 {
@@ -765,6 +921,10 @@ function check_and_set_expired_lots_winners(mysqli $connect): void
 //  FORMAT FUNCTIONS
 /**
  * Формирует таймер и класс для лота.
+ *
+ * @param string $date_end
+ * @return array{text: string, class: string}
+ * @throws DateMalformedStringException
  */
 function format_lot_timer_data(string $date_end): array
 {
@@ -788,6 +948,10 @@ function format_lot_timer_data(string $date_end): array
 
 /**
  * Формирует относительное время (например, "5 мин. назад").
+ *
+ * @param string $mysql_datetime
+ * @return string
+ * @throws DateMalformedStringException
  */
 function format_relative_time(string $mysql_datetime): string
 {
@@ -810,6 +974,9 @@ function format_relative_time(string $mysql_datetime): string
 
 /**
  * Форматирует цену с пробелами-разделителями и символом рубля.
+ *
+ * @param int $amount
+ * @return string
  */
 function format_price(int $amount): string
 {
@@ -818,6 +985,10 @@ function format_price(int $amount): string
 
 /**
  * Функция для формирования URL с параметрами страницы
+ *
+ * @param int $page_num
+ * @param array $params
+ * @return string
  */
 function build_pagination_params(int $page_num, array $params): string
 {
