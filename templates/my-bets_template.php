@@ -18,7 +18,7 @@
                     $date_end = $bet["date_end"];
                     $winner_id = (int)$bet["winner_id"];
                     $lot_id = (int)$bet["lot_id"];
-                    $contact_info = htmlspecialchars($bet["contact_information"] ?? "Нет данных");
+                    $contact_info = "";
 
                     $now = date("Y-m-d");
                     $end_time = new DateTime($date_end);
@@ -34,6 +34,7 @@
                             $status_class = "rates__item--win";
                             $timer_text = "Ставка выиграла";
                             $timer_class = "timer timer--win";
+                            $contact_info = htmlspecialchars($bet["contact_information"] ?? "Нет данных");
                         } else {
                             $status_class = "rates__item--end";
                         }
