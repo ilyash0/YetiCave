@@ -28,10 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !$is_auth) {
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && $is_auth) {
     $bid_amount = trim($_POST["cost"] ?? '');
-    $errors = validate_bid([
-        'cost' => $bid_amount,
-        'lot_id' => $lot_id
-    ], $lot, $connect, $user_id, $strings);
+    $errors = validate_bid($bid_amount, $lot, $connect, $user_id, $strings);
 
     if (empty($errors)) {
         $bid_amount_int = (int)$bid_amount;

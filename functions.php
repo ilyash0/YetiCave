@@ -62,22 +62,13 @@ function is_filled(string $text): bool
 }
 
 /**
- * Проверяет, что длина строки в заданном диапазоне.
- */
-function is_valid_length(string $text, int $min, int $max): bool
-{
-    $len = mb_strlen($text);
-    return $len >= $min && $len <= $max;
-}
-
-/**
  * Проверяет, что значение — положительное число.
  */
 function is_valid_price(string $value): bool
 {
     $result = filter_var($value, FILTER_VALIDATE_INT, [
         'options' => [
-            'min_range' => 1  // Минимальное значение - 1
+            'min_range' => 1
         ]
     ]);
 
@@ -110,15 +101,23 @@ function is_valid_date(string $date): bool
  */
 function is_image($file): bool
 {
-    if (!is_array($file) || empty($file["tmp_name"])) {
+    if (!is_array($file) || empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
         return false;
     }
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    if (!$finfo) {
+        return false;
+    }
     $file_type = finfo_file($finfo, $file["tmp_name"]);
     finfo_close($finfo);
 
-    return in_array($file_type, ["image/jpeg", "image/png"]);
+    $allowed = ["image/jpeg", "image/png"];
+    if (!in_array($file_type, $allowed, true)) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -163,7 +162,7 @@ function is_common_password(string $string): bool
         "123123123", "p@ssw0rd", "aa@123456", "admintelecom", "admin@123", "112233",
         "1234qwer", "1q2w3e4r", "qwerty123", "password1", "pass@123", "q1w2e3r4",
         "qwertyui", "qwertyuiop", "qwertyuio", "testtest", "password",
-        "йцукенгш", "йцукенгшщз","йцукенгшщзх", "йцукенгшщ", "йцукенгшщзхъ"
+        "йцукенгш", "йцукенгшщз", "йцукенгшщзх", "йцукенгшщ", "йцукенгшщзхъ"
     ];
 
     return in_array(mb_strtolower($string, "UTF-8"), $common_passwords);
@@ -234,7 +233,6 @@ function query_lot_base(): string
 
 /**
  * Выполняет SQL-запрос SELECT и возвращает все строки.
- * Использует подготовленные выражения (prepare).
  */
 function db_fetch_all(mysqli $connect, string $sql, array $params = []): array
 {
@@ -252,13 +250,12 @@ function db_fetch_all(mysqli $connect, string $sql, array $params = []): array
 
 /**
  * Выполняет SQL-запрос SELECT и возвращает одну строку.
- * Использует подготовленные выражения (prepare).
  */
 function db_fetch_one(mysqli $connect, string $sql, array $params = []): ?array
 {
     if (empty($params)) {
         $result = mysqli_query($connect, $sql);
-        return mysqli_fetch_assoc($result);
+        return $result ? mysqli_fetch_assoc($result) : null;
     }
 
     $stmt = db_get_prepare_stmt($connect, $sql, $params);
@@ -293,12 +290,8 @@ function get_active_lots_list(mysqli $connect): array
 /**
  * Возвращает лот по ID.
  */
-function get_lot_by_id(mysqli $connect, ?int $id): ?array
+function get_lot_by_id(mysqli $connect, int $id): ?array
 {
-    if ($id === null) {
-        return null;
-    }
-
     $sql = query_lot_base() . "
             WHERE l.id = ?";
 
@@ -331,10 +324,9 @@ function search_lots_by_query(mysqli $connect, string $query): array
  */
 function get_category_by_symbolic_code(mysqli $connect, string $name): ?array
 {
-    $name = trim($name);
     $sql = "SELECT * FROM categories WHERE symbolic_code = ?";
 
-    return db_fetch_one($connect, $sql, [$name]);
+    return db_fetch_one($connect, $sql, [trim($name)]);
 }
 
 /**
@@ -382,16 +374,19 @@ function get_bids_by_user_id(mysqli $connect, int $user_id): array
 {
     $sql = "SELECT 
                 b.amount AS bet_amount, b.created_at AS bet_time, l.id AS lot_id,
-                l.title AS lot_title, l.image_url, l.date_end, l.winner_id,
-                l.initial_price, l.author_id, u.contact_information, c.name AS category_name,
-                COALESCE(MAX(b2.amount), l.initial_price) AS current_price
+                l.title, l.image_url, l.date_end, l.winner_id,
+                l.initial_price, l.author_id, u.contact_information,
+                c.name AS category_name,
+                (
+                    SELECT COALESCE(MAX(b2.amount), l.initial_price)
+                    FROM bids b2
+                    WHERE b2.lot_id = l.id
+                ) AS current_price
             FROM bids b
             JOIN lots l ON b.lot_id = l.id
             JOIN users u ON l.author_id = u.id
             JOIN categories c ON l.category_id = c.id
-            LEFT JOIN bids b2 ON l.id = b2.lot_id
             WHERE b.user_id = ?
-            GROUP BY l.id, b.id, b.created_at
             ORDER BY b.created_at DESC";
 
     return db_fetch_all($connect, $sql, [$user_id]);
@@ -409,7 +404,7 @@ function get_last_bid_for_lot(mysqli $connect, int $lot_id): ?array
 
 //  AUTH FUNCTIONS
 /**
- * Основная функция валидации — возвращает массив ошибок по полям
+ * Основная функция валидации формы регистрации — возвращает массив ошибок по полям
  */
 function validate_registration(mysqli $connect, array $input, array $strings): array
 {
@@ -423,7 +418,7 @@ function validate_registration(mysqli $connect, array $input, array $strings): a
 
     if (!is_filled($email)) {
         $errors['email'] = $strings['email_empty'];
-    } elseif (!is_valid_length($email, 0, MAX_EMAIL_LEN)) {
+    } elseif (mb_strlen($email) > MAX_EMAIL_LEN) {
         $errors['email'] = $strings['email_long'];
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = $strings['email_invalid'];
@@ -457,13 +452,13 @@ function validate_registration(mysqli $connect, array $input, array $strings): a
 
     if (!is_filled($name)) {
         $errors['name'] = $strings['name_empty'];
-    } elseif (!is_valid_length($name, 0, MAX_NAME_LEN)) {
+    } elseif (mb_strlen($name) > MAX_NAME_LEN) {
         $errors['name'] = $strings['name_long'];
     }
 
     if (!is_filled($message)) {
         $errors['message'] = $strings['message_empty'];
-    } elseif (!is_valid_length($message, 0, MAX_MESSAGE_LEN)) {
+    } elseif (mb_strlen($message) > MAX_MESSAGE_LEN) {
         $errors['message'] = $strings['message_long'];
     }
 
@@ -475,7 +470,7 @@ function validate_registration(mysqli $connect, array $input, array $strings): a
 }
 
 /**
- * Основная функция валидации — возвращает массив ошибок по полям
+ * Основная функция валидации формы авторизации — возвращает массив ошибок по полям
  */
 function validate_authentication(array $input, array $strings): array
 {
@@ -588,7 +583,7 @@ function register_user(mysqli $connect, string $name, string $email, string $pas
 
 // LOTS FUNCTIONS
 /**
- * Валидация формы добавления лота
+ * Основная функция валидации формы добавления лота — возвращает массив ошибок по полям
  */
 function validate_lot_creation(array $data, array $strings, array $categories): array
 {
@@ -603,7 +598,7 @@ function validate_lot_creation(array $data, array $strings, array $categories): 
 
     if (!is_filled($title)) {
         $errors['title'] = $strings['title_empty'];
-    } elseif (!is_valid_length($title, 0, MAX_MESSAGE_LEN)) {
+    } elseif (mb_strlen($title) > MAX_MESSAGE_LEN) {
         $errors['title'] = $strings['title_long'];
     }
 
@@ -615,7 +610,7 @@ function validate_lot_creation(array $data, array $strings, array $categories): 
 
     if (!is_filled($description)) {
         $errors['description'] = $strings['description_empty'];
-    } elseif (!is_valid_length($description, 0, MAX_DESCRIPTION_LEN)) {
+    } elseif (mb_strlen($description) > MAX_DESCRIPTION_LEN) {
         $errors['description'] = $strings['description_long'];
     }
 
@@ -647,29 +642,31 @@ function validate_lot_creation(array $data, array $strings, array $categories): 
 }
 
 /**
- * Валидация формы добавления ставки
+ * Основная функция валидации формы добавления ставки — возвращает массив ошибок по полям
  */
-function validate_bid(array $data, array $lot, mysqli $connect, int $user_id, array $strings): array
+function validate_bid(string $bid_amount_input, array $lot, mysqli $connect, int $user_id, array $strings): array
 {
     $errors = [];
-    $bid_amount_input = trim($data['cost'] ?? '');
+    $author_id = $lot['author_id'] ?? '';
+    $date_end = $lot['date_end'] ?? '';
+    $bid_amount_input = trim($bid_amount_input);
     $bid_amount = (int)$bid_amount_input;
     $now = date("Y-m-d");
-    $last_bid = get_last_bid_for_lot($connect, $lot["id"]);
+    $last_bid = get_last_bid_for_lot($connect, (int)$lot["id"] ?? 0);
 
-    if ($lot['date_end'] < $now) {
+    if ($date_end < $now) {
         $errors['bid'] = $strings['bid_lot_ended'];
-    } elseif ((int)$lot['author_id'] === $user_id) {
+    } elseif ((int)$author_id === $user_id) {
         $errors['bid'] = $strings['bid_own_lot'];
     } elseif ($last_bid && (int)$last_bid['user_id'] === $user_id) {
         $errors['bid'] = $strings['bid_same_user'];
     } elseif (empty($bid_amount_input)) {
         $errors['bid'] = $strings['bid_empty'];
-    } elseif (!is_numeric($bid_amount_input) || $bid_amount_input != $bid_amount || $bid_amount <= 0) {
+    } elseif (!is_numeric($bid_amount_input) || $bid_amount <= 0) {
         $errors['bid'] = $strings['bid_invalid'];
     } else {
-        $current_price = (int)$lot['current_price'];
-        $bid_step = (int)$lot['bid_step'];
+        $current_price = (int)$lot['current_price'] ?? 0;
+        $bid_step = (int)$lot['bid_step'] ?? 0;
         $min_bid = $current_price + $bid_step;
 
         if ($bid_amount < $min_bid) {

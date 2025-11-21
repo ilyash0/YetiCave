@@ -12,7 +12,7 @@
                 <?php foreach ($bets as $bet): ?>
                     <?php
                     $image_url = htmlspecialchars($bet["image_url"]);
-                    $title_safe = htmlspecialchars($bet["lot_title"]);
+                    $title_safe = htmlspecialchars($bet["title"]);
                     $category_name = htmlspecialchars($bet["category_name"]);
                     $bet_amount = (int)$bet["bet_amount"];
                     $date_end = $bet["date_end"];
